@@ -1,1 +1,6 @@
-# poems
+# Poems
+
+The 'proof of the effective majority' (POEMS) is an innovative approach that enables a staked authority to validate a shared secret through a process that necessitates the exchange of specific records, where neither party possesses any prior knowledge to complete a single proof.
+The proof involves securely generating and storing account information in the INVO system, including public and private keys, using a series of steps such as key generation, mnemonic creation, hashing, and storage.
+A significant portion of this information is subsequently transferred to another party, wherein the key master possesses solely a zero-knowledge proof of the keys they generated, without any knowledge of the key's contents. Only when the external party returns the key to unlock the contents, which both parties are aware of, can a mutually agreed-upon proof be approved—a process that inherently incentivizes both parties to reach consensus.
+The Proof of the Effective Majority (POEMS) is a sophisticated mechanism designed to validate a shared secret within the INVO system.
