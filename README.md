@@ -43,3 +43,28 @@ The POEMS process inherently incentivizes both the key master and the external p
 
   
 The Proof of the Effective Majority (POEMS) is a robust and secure mechanism that enables the validation of a shared secret within the INVO system. Through a series of steps involving key generation, mnemonic creation, and the exchange of information, the POEMS process ensures consensus and verification between parties involved. 
+
+# Proof of the effective majority Stake protocol, but explained to a five year old :  
+
+ 
+
+Imagine we're playing a game 🎮 ! In this game, I make a magic box 🎁 and magic keys 🔑🔑. I also make an invisible, secret word list 📜. This word list is super special because only you and I know about it , and it can help us make more keys if we ever lose them. 🗑️
+ 
+
+Now, I use the secret word list 📜 and make a magic code 🍭. **This code is connected to the word list but doesn't give it away**. I give you the magic box 🎁, the keys 🔑🔑, and the magic code 🍭. **But I keep the word list to myself** 📜. 
+
+ 
+
+The magic box 🎁 can only be opened with the keys 🔑🔑, **but the keys are useless without the secret word list** 📜.
+
+ 
+
+This is where it gets interesting!🎉 Even though you have the box 🎁 and keys 🔑🔑, you can't open the box without the secret word list 📜. So, you take the magic code 🍭 that I gave you, and you use it to make your own word list 📃. And guess what? Your word list matches mine!  📜 == 📃 
+
+ 
+
+Now that you've made your own word list 📃, you can use it to make a new key 🗝️. And this key opens the magic box 🎁! This proves that you made the same key that I had secretly stored 🔑🔑 = 🗝️🗝️. When the box opens, I can use the secret code 🍭 you used to check that everything matches up! 
+
+ 
+
+This way, we've proven that you're the only one who could have opened the box 🎁, because only you and I knew the secret code 🍭, and you were the one who made the word list 📃 that could make the magic key 🗝️. That's what we call 'Proof of the Effective Majority Staked' or POEMS.
