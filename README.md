@@ -44,7 +44,7 @@ The POEMS process inherently incentivizes both the key master and the external p
   
 The Proof of the Effective Majority (POEMS) is a robust and secure mechanism that enables the validation of a shared secret within the INVO system. Through a series of steps involving key generation, mnemonic creation, and the exchange of information, the POEMS process ensures consensus and verification between parties involved. 
 
-# Proof of the effective majority Stake protocol, but explained to a five year old :  
+# Proof of the Effective Majority Stake protocol, but explained to a five year old :  
 
  
 
