@@ -9,6 +9,8 @@ A significant portion of this information is subsequently transferred to another
 The Proof of the Effective Majority (POEMS) is a sophisticated mechanism designed to validate a shared secret within the INVO system.  
 
 ## Summary of POEMS 
+<img width="1434" alt="Screenshot 2023-07-10 at 6 34 36 PM" src="https://github.com/Invo-Technologies/poems/assets/43707795/08d7559e-9161-47f5-a263-307faed2f3cc">
+
 
 ### Transition 1: Generation and Storage of Account Information 
 
