@@ -1,0 +1,8 @@
+- viewing Key
+- function_ids
+-- z1 = exit = "bind_id" 
+-- z2 = transfer = "bind_id"
+-- z3 = swap = "bind_id"
+
+- Aleo Program Secrets
+-- z = { seed, sha256, game_id, pool_id, [function_id: string]} // String is exit or transfer or swap
