@@ -58,14 +58,14 @@ fn main() {
     };
 
     println!("{}", "\n=== End of Process ===".green()); // modified
+    match Generation::rsa::generate_rsa_keys() {
+        Ok((private_key, public_key)) => {
+            println!("Private Key: {:?}", private_key);
+            println!("Public Key: {:?}", public_key);
+        },
+        Err(e) => eprintln!("Error: {:?}", e),
+    }
 }
-
-
-
-
-
-
-
 
 //use this in case. 
 /*use bip39::{Mnemonic, Error};
