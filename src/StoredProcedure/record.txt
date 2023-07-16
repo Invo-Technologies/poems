@@ -1,3 +1,12 @@
+
+
+
+
+
+
+
+
+/*
 Our program needs to take and store data for account query // Input fields
 
 
@@ -23,3 +32,4 @@ Then we will generate a private record that will generate a new BHP hash for eac
 
 Our program will use the stored viewing key from the BlindAssetRecord to reveal the contents of the Aleo record and import each input variable in the BlindAssetRecord
 for each function_id there is an equivalent bind_id.
+*/
