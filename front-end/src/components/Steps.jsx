@@ -5,7 +5,7 @@ export default function Steps() {
   const { steps } = usePoemsContext();
   console.log(steps);
   return (
-    <div className="flex justify-between my-4 items-center">
+    <div className="flex justify-around my-4 items-center">
       {steps.map((step, idx) => {
         const { type, isChecked } = step;
         return (

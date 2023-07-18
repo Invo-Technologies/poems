@@ -1,15 +1,21 @@
-export const InputEl = ({ labelText, placeholder, disabled }) => {
+export const InputEl = ({
+  showLabel,
+  labelText,
+  placeholder,
+  disabled,
+  className,
+}) => {
   return (
     <div className="w-full mb-6">
-      <div
-        className={`text-[12px] w-fit py-1 px-2 mb-4 w-fit rounded-md ${
-          disabled
-            ? 'bg-[#3A414A] text-black'
-            : 'bg-white text-black cursor-pointer'
-        }`}
-      >
-        {labelText}
-      </div>
+      {showLabel && (
+        <div
+          className={`text-[12px] w-fit py-1 px-2 mb-4 w-fit rounded-md ${
+            disabled ? 'bg-[#3A414A] text-black' : className
+          }`}
+        >
+          {labelText}
+        </div>
+      )}
       <input
         disabled={disabled}
         type="text"
@@ -23,8 +29,31 @@ export const InputEl = ({ labelText, placeholder, disabled }) => {
   );
 };
 
-export const ButtonEl = ({ text, className }) => {
+export const ButtonEl = ({ text, className, handleClick }) => {
   return (
-    <button className={`border p-2 rounded-md ${className}`}>{text}</button>
+    <button
+      className={`border py-3 px-4 rounded-md transition-all duration-300 ${className}`}
+      onClick={handleClick}
+    >
+      {text}
+    </button>
+  );
+};
+
+export const GenerationBtnCheck = ({ text, id }) => {
+  return (
+    <div>
+      <input type="checkbox" id={id} value="" className="hidden peer" />
+      <label
+        for={id}
+        className="inline-flex items-center justify-between w-fit py-1 px-2 text-generation-dark bg-black
+        rounded-md cursor-pointer hover:text-generation-dark peer-checked:text-generation-dark
+        peer-checked:bg-white hover:bg-white"
+      >
+        <div className="block">
+          <div className="w-full text">{text}</div>
+        </div>
+      </label>
+    </div>
   );
 };

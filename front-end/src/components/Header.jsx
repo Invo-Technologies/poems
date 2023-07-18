@@ -5,7 +5,7 @@ export default function Header() {
   return (
     <div className="">
       <div className="flex justify-between items-center">
-        <div className="text-3xl font-bold">Logo</div>
+        <div className="text-account-dark text-3xl font-bold">POEMS</div>
         <Progress />
       </div>
       <div className="">

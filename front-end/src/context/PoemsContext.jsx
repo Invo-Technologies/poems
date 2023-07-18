@@ -5,15 +5,15 @@ import usePersist from '../hooks/usePersist';
 export const PoemsContext = React.createContext({});
 
 export const PoemsContextProvider = ({ children }) => {
-  const [activeStep, setActiveStep] = usePersist('activeStep', 'account');
+  const [activeStep, setActiveStep] = usePersist('activeStep', 'generation');
   const [steps, setSteps] = usePersist('steps', [
     {
       type: 'account',
-      isChecked: false,
+      isChecked: true,
     },
     {
       type: 'generation',
-      isChecked: false,
+      isChecked: true,
     },
     {
       type: 'aleo',
