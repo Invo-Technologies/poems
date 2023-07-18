@@ -10,7 +10,6 @@ Poems, short for Proof of the Effective Majority Staked, is an innovative approa
 - [Installation Instructions](#installation-instructions)
 - [Running the Project](#running-the-project)
 - [Detailed Walkthrough](#detailed-walkthrough)
-- [The Layman's Explanation](#the-laymans-explanation)
 
 ## Prerequisites
 
