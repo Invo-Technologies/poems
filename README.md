@@ -102,7 +102,3 @@ Open the displayed local address in your web browser to interact with the projec
 ## Detailed Walkthrough
 
 Poems functions through a series of transitions that include the generation and storage of account information, mnemonic creation and hashing, the transfer of information to an external party, the exchange of a shared secret, and the final consensus and proof approval. [Explore our step-by-step guide for an in-depth understanding.](https://github.com/Invo-Technologies/poems/blob/main/README.md#transition-1-generation-and-storage-of-account-information)
-
-## The Layman's Explanation
-
-While Poems encompasses a range of sophisticated processes and concepts, we've created an explanation using simple analogies. We use the concept of a game with magic boxes, keys, secret word lists, and magic codes to illustrate the essence of Poems. This light-hearted explanation can help provide a rudimentary understanding of our complex system. [Dive into this fun explanation here!](https://github.com/Invo-Technologies/poems/blob/main/README.md#proof-of-the-effective-majority-stake-protocol-but-explained-in-simpler-terms)
