@@ -14,5 +14,3 @@ pub fn generate_hmac(secret: &[u8], data: &[u8]) -> (String, String) {
 
     (binary, hex)
 }
-
-
