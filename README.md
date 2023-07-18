@@ -1,47 +1,108 @@
 # Poems: Proof of the Effective Majority Staked
 
-Welcome to the 'Proof of the Effective Majority Staked' (POEMS) repository. POEMS presents an innovative approach that enables a staked authority to validate a shared secret through a series of exchanges and validations, where neither party possesses any prior knowledge to complete a single proof.
+![Poems Overview](https://github.com/Invo-Technologies/poems/assets/43707795/08d7559e-9161-47f5-a263-307faed2f3cc)
 
-The entire process is securely facilitated within the INVO system. It involves generating and storing account information, including public and private keys, using key generation, mnemonic creation, hashing, and storage. A substantial portion of this information is later transferred to another party, wherein the key master solely possesses a zero-knowledge proof of the keys they generated, without any knowledge of the key's contents.
+Poems, short for Proof of the Effective Majority Staked, is an innovative approach that introduces a robust and secure mechanism to validate a shared secret within the INVO system. The process involves securely generating and storing account information, including public and private keys. It then transfers a significant portion of this information to another party to achieve a mutually agreed-upon proof, incentivizing consensus.
 
-Only when the external party returns the key to unlock the contents, which both parties are aware of, can a mutually agreed-upon proof be approved. This process inherently incentivizes both parties to reach consensus. The POEMS mechanism is a sophisticated design intended to validate a shared secret within the INVO system.
+## Table of Contents
 
-![POEMS Overview](https://github.com/Invo-Technologies/poems/assets/43707795/08d7559e-9161-47f5-a263-307faed2f3cc)
+- [Prerequisites](#prerequisites)
+- [Installation Instructions](#installation-instructions)
+- [Running the Project](#running-the-project)
+- [Understanding Poems](#understanding-poems)
+- [Poems for Kids](#poems-for-kids)
 
-## Step-by-Step Overview of POEMS
+## Prerequisites
 
-### Transition 1: Generation and Storage of Account Information
+Before proceeding, ensure you have the following tools installed:
 
-The INVO system initiates the proofing mechanism by generating and securely storing account information. This information includes public and private keys created using a reliable key generation algorithm, and these keys play a crucial role in subsequent steps of the proofing process.
+- [Node.js and npm](https://nodejs.org/en/download/)
+- [Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project)
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
 
-### Transition 2: Mnemonic Creation and Hashing
+## Installation Instructions
 
-Simultaneously with key generation, a BIP39 mnemonic is created to facilitate account recovery. This mnemonic serves as a backup for the account's private keys. Moreover, a hashing function is applied to the mnemonic, generating a secure 256-bit hash, a crucial component in the proofing process.
+**Node.js and npm:**
 
-### Transition 3: Transfer of Information to External Party
+```bash
+# Check if you have Node.js and npm installed
+node -v
+npm -v
 
-A significant portion of the account information is transferred to an external party. During this transfer, the key master, holding the generated keys, provides a zero-knowledge proof based solely on the creation of the keys. Importantly, the key master remains unaware of the contents of the keys.
+# If not, download and install Node.js and npm from the official website
+# https://nodejs.org/en/download/
+```
 
-### Transition 4: Exchange of the Shared Secret
+**Vite:**
 
-Upon receiving the account information, the external party participates in the exchange of the shared secret. To unlock the contents of the shared secret, the external party returns the key to the key master. Both parties have prior knowledge of the contents, ensuring mutual agreement and verification.
+```bash
+# Install Vite globally
+npm install -g create-vite
+```
 
-### Transition 5: Consensus and Proof Approval
+**Rust:**
 
-The POEMS process naturally incentivizes both the key master and the external party to reach consensus on the proof. By agreeing on the shared secret and its unlocking process, the proof is verified and approved, signaling the successful completion of the proofing mechanism.
+```bash
+# Download and install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
-POEMS is a robust and secure mechanism designed to validate a shared secret within the INVO system. Through a series of steps involving key generation, mnemonic creation, and the exchange of information, the POEMS process ensures consensus and verification between the involved parties.
+**Cargo:**
 
-## Proof of the Effective Majority Stake protocol, Simplified
+```bash
+# Cargo comes with Rust, verify installation
+cargo --version
+```
 
-Imagine we're playing a game 🎮! In this game, I make a magic box 🎁 and magic keys 🔑🔑. I also create a special secret word list 📜, known only to you and me. This list can help us recreate the keys if we ever lose them.
+## Running the Project
 
-I use this secret word list 📜 to create a magic code 🍭, which is related to the word list but doesn't reveal it. I give you the magic box 🎁, the keys 🔑🔑, and the magic code 🍭, while the word list stays with me.
+### Running the Rust Program
 
-The magic box 🎁 can only be opened with the keys 🔑🔑, but they are useless without the secret word list 📜.
+1. Navigate to the root directory of the Rust project.
 
-Here's the exciting part! 🎉 Even though you have the box 🎁 and keys 🔑🔑, you can't open the box without the secret word list 📜. So, you take the magic code 🍭 that I gave you, and you use it to create your own word list 📃. Surprise, surprise, your word list matches mine! 📜 == 📃
+```bash
+cd poems
+```
 
-Now that you've created your word list 📃, you can use it to forge a new key 🗝️, which opens the magic box 🎁! This proves that you have successfully recreated the key I had secretly stored 🔑🔑 = 🗝️🗝️. When the box opens, I use the secret code 🍭 you used to check that everything matches!
+2. Build the project without running `cargo update`. The `cargo update` command updates your Rust dependencies, but in this project, it can disrupt the code. Therefore, avoid running it.
 
-This way, we've proven that you're the only one who could have opened the box 🎁, because only you and I knew the secret code 🍭, and you created the word list 📃 that made the magic key 🗝️. That's what we call 'Proof of the Effective Majority Staked' or POEMS.
+```bash
+cargo build --release
+```
+
+3. Execute the project.
+
+```bash
+cargo run --all-features
+```
+
+### Running the Frontend
+
+Navigate to the directory containing the frontend code.
+
+```bash
+cd frontend
+```
+
+Install the dependencies.
+
+```bash
+npm install
+```
+
+Start the Vite server.
+
+```bash
+npm run dev
+```
+
+Open the displayed local address in your web browser to interact with the project.
+
+## Understanding Poems
+
+Poems functions through a series of transitions that include the generation and storage of account information, mnemonic creation and hashing, the transfer of information to an external party, the exchange of a shared secret, and the final consensus and proof approval. [Learn more in our in-depth guide.](https://github.com/Invo-Technologies/poems/blob/main/README.md#transition-1-generation-and-storage-of-account-information)
+
+## Poems for Kids
+
+If we were to explain Poems to a five-year-old, we would talk about a game involving magic boxes, keys, secret word lists, and magic codes. We would use these analogies to explain the complex processes that are part of Poems. Curious? [Check out the full explanation here!](https://github.com/Invo-Technologies/poems/blob/main/README.md#proof-of-the-effective-majority-stake-protocol-but-explained-to-a-five-year-old)
