@@ -1,6 +1,6 @@
-use bip39::{Mnemonic, Error};
-use rand::Rng;
+use bip39::{Error, Mnemonic};
 use hex;
+use rand::Rng;
 
 pub fn generate_entropy() -> Vec<u8> {
     let mut rng = rand::thread_rng();
@@ -16,7 +16,9 @@ pub fn generate_entropy() -> Vec<u8> {
 
 pub fn hex_to_bin(hex_string: &str) -> Result<String, hex::FromHexError> {
     let bytes = hex::decode(hex_string)?;
-    let bin = bytes.iter().fold(String::new(), |acc, b| acc + &format!("{:08b}", b));
+    let bin = bytes
+        .iter()
+        .fold(String::new(), |acc, b| acc + &format!("{:08b}", b));
     Ok(bin)
 }
 
