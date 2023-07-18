@@ -1,5 +1,5 @@
 use bip39::{Error, Mnemonic};
-use hex;
+use hex::*;
 use rand::Rng;
 
 pub fn generate_entropy() -> Vec<u8> {
