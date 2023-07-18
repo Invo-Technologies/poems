@@ -1,4 +1,6 @@
 mod Generation;
+use std::io::{self, Write};
+use Generation::sha256;
 use std::fs;
 use bip39::Mnemonic;
 use colored::*; // added
@@ -79,6 +81,29 @@ fn main() {
         }
         Err(e) => eprintln!("An error occurred: {}", e),
     }
-    println!("{}","\n===================== End of Process ======================\n".blue());
-   
+    println!("{}","\n===================== End of Key Generation ======================\n".blue());
+    println!("{}","\n===================== Start Sha256 Program======================\n".red());
+    println!("\nTest program using this link: https://it-tools.tech/hmac-generator\n");
+
+    // sha 256 program generation portion : 
+    let mut input = String::new(); // this will accept the mnemonic from record.json
+    let mut secret = String::new(); // this will accept the Record.json/Private_key.pem
+    
+    print!("Enter input: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    
+    print!("Enter secret: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut secret).unwrap();
+
+    // Remove the newline character from the end
+    input.pop();
+    secret.pop();
+
+    let (hmac_binary, hmac_hex) = sha256::generate_hmac(secret.as_bytes(), input.as_bytes());
+
+    println!("HMAC in binary: {}", hmac_binary); 
+    println!("HMAC in hex: {}", hmac_hex);
+
 }
