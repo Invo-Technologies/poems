@@ -1,6 +1,7 @@
 use hmac_sha256::HMAC;
 
 pub fn generate_hmac(secret: &[u8], data: &[u8]) -> (String, String) {
+    #[allow(unused_mut)]
     let mut mac = HMAC::mac(data, secret);
 
     // Convert bytes to binary

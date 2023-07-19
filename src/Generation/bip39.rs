@@ -1,5 +1,7 @@
 // Importing necessary libraries and modules.
+#[allow(unused_imports)]
 use bip39::{Error, Mnemonic}; // Library to work with BIP39 mnemonic.
+#[allow(unused_imports)]
 use hex::*; // Library for hexadecimal related operations.
 use rand::Rng; // Library for random number generation.
 

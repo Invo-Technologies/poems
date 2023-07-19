@@ -1,8 +1,9 @@
+#![allow(non_snake_case)]
 mod Generation;
 use Generation::aes::{invo_aes_decrypt, invo_aes_encrypt};
 use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
 use Generation::sha256;
-
+#[allow(unused_imports)]
 use base64::{
     alphabet,
     engine::{self, general_purpose},
@@ -21,6 +22,7 @@ use data_encoding::BASE64_NOPAD;
 extern crate rand;
 extern crate rsa;
 
+#[warn(non_snake_case)]
 fn main() {
     // We start the program with a greeting.
     println!(
@@ -170,7 +172,7 @@ fn main() {
 
     // Derive a 256-bit key from the hash
     let hkdf = Hkdf::<Sha256>::new(None, &hash);
-    let mut key = [0u8; 32];  // AES256 requires a 32-byte key
+    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
     hkdf.expand(&[], &mut key).expect("Failed to generate key");
 
     let ciphertext = invo_aes_encrypt(input_bytes, &key);
@@ -178,7 +180,7 @@ fn main() {
 
     println!("\nCiphertext: {}", ciphertext_base64);
 }
-
+//build this so that I use the decrypt function to make the prompt take in the secret key to return the input. 
 pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> String {
     let ciphertext_decoded = BASE64_NOPAD.decode(ciphertext_base64.as_bytes()).unwrap();
     let decrypted = invo_aes_decrypt(&ciphertext_decoded, secret.as_bytes());
