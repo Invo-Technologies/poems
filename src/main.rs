@@ -8,7 +8,9 @@ use std::io::{self, Write}; // Library for input/output operations.
 use Generation::sha256; // Our sha256 module from Generation.
 extern crate rand; // External crate for generating random numbers.
 extern crate rsa; // External crate for RSA algorithm.
+use Generation::aes::{aes_decrypt, aes_encrypt};
 use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy}; // Functions from our bip39 module.
+use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
 fn main() {
     // We start the program with a greeting.
@@ -119,7 +121,7 @@ fn main() {
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input).unwrap();
 
-    print!("Enter secret: ");
+    print!("\nEnter secret: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut secret).unwrap();
 
@@ -131,6 +133,40 @@ fn main() {
     let (hmac_binary, hmac_hex) = sha256::generate_hmac(secret.as_bytes(), input.as_bytes());
 
     // Print the generated HMAC in both formats.
-    println!("HMAC in binary: {}", hmac_binary);
-    println!("HMAC in hex: {}", hmac_hex);
+    println!("\nHMAC in binary: {}\n", hmac_binary);
+    println!("HMAC in hex: {}\n", hmac_hex);
+
+    println!(
+        "{}",
+        "\n===================== Start AES Program======================\n".yellow()
+    );
+
+    // aes signature
+    let mut input = String::new();
+    let mut secret = String::new();
+
+    print!("Enter text to be encrypted: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+    let input_bytes = input.trim().as_bytes();
+
+    print!("Enter secret: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut secret).unwrap();
+    let secret_bytes = secret.trim().as_bytes();
+
+    let mut key = [0u8; 32];
+    key[..secret_bytes.len()].copy_from_slice(secret_bytes);
+
+    let ciphertext = aes_encrypt(input_bytes, &key);
+    let ciphertext_base64 = general_purpose::STANDARD.encode(&ciphertext);
+
+    println!("Ciphertext: {}", ciphertext_base64);
+
+    let ciphertext_decoded = general_purpose::STANDARD.decode(&ciphertext_base64).unwrap();
+    let decrypted = aes_decrypt(&ciphertext_decoded, &key);
+
+    let decrypted_text = String::from_utf8(decrypted.to_vec()).unwrap();
+
+    println!("Decrypted Text: {}", decrypted_text);
 }
