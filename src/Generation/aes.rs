@@ -1,3 +1,4 @@
+use aes_gcm::aead::Error as AesGcmError;
 use aes_gcm::{
     aead::{generic_array::GenericArray, AeadInPlace, KeyInit},
     Aes256Gcm, Nonce,
@@ -27,7 +28,7 @@ pub fn invo_aes_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
     buffer
 }
 
-pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Vec<u8> {
+pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Result<Vec<u8>, AesGcmError> {
     // Hash the key to derive a 32-byte key.
     let mut hasher = Sha256::new();
     hasher.update(key);
@@ -38,9 +39,8 @@ pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Vec<u8> {
     let (ciphertext, nonce) = ciphertext_and_nonce.split_at(ciphertext_and_nonce.len() - 12);
 
     let mut buffer = ciphertext.to_vec();
-    cipher
-        .decrypt_in_place(&Nonce::from_slice(nonce), &[], &mut buffer)
-        .unwrap();
+    cipher.decrypt_in_place(&Nonce::from_slice(nonce), &[], &mut buffer)?;
 
-    buffer
+    Ok(buffer)
 }
+//turn into the base64

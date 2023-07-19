@@ -1,8 +1,5 @@
 #![allow(non_snake_case)]
 mod Generation;
-use Generation::aes::{invo_aes_decrypt, invo_aes_encrypt};
-use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
-use Generation::sha256;
 #[allow(unused_imports)]
 use base64::{
     alphabet,
@@ -16,6 +13,9 @@ use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::{self, Write};
+use Generation::aes::{invo_aes_decrypt, invo_aes_encrypt};
+use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
+use Generation::sha256;
 
 use data_encoding::BASE64_NOPAD;
 
@@ -179,10 +179,87 @@ fn main() {
     let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
 
     println!("\nCiphertext: {}", ciphertext_base64);
+
+    print!("\nEnter ciphertext to be decrypted: ");
+    io::stdout().flush().unwrap();
+    let mut ciphertext_to_decrypt = String::new();
+    io::stdin().read_line(&mut ciphertext_to_decrypt).unwrap();
+
+    print!("\nEnter secret for decryption: ");
+    io::stdout().flush().unwrap();
+    let mut secret_for_decryption = String::new();
+    io::stdin().read_line(&mut secret_for_decryption).unwrap();
+
+    let decrypted_text =
+        match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
+            Ok(text) => text,
+            Err(e) => {
+                eprintln!("An error occurred during decryption: {:?}", e);
+                return;
+            }
+        };
+    println!("\nDecrypted text: {}", decrypted_text);
 }
-//build this so that I use the decrypt function to make the prompt take in the secret key to return the input. 
-pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> String {
-    let ciphertext_decoded = BASE64_NOPAD.decode(ciphertext_base64.as_bytes()).unwrap();
-    let decrypted = invo_aes_decrypt(&ciphertext_decoded, secret.as_bytes());
-    String::from_utf8(decrypted.to_vec()).unwrap()
+
+#[derive(Debug)]
+pub enum CustomError {
+    HkdfError,
+    Base64Error(data_encoding::DecodeError),
+    AesError(aes_gcm::Error),
+    Utf8Error(std::string::FromUtf8Error),
+}
+
+impl From<aes_gcm::Error> for CustomError {
+    fn from(err: aes_gcm::Error) -> CustomError {
+        CustomError::AesError(err)
+    }
+}
+
+impl From<data_encoding::DecodeError> for CustomError {
+    fn from(err: data_encoding::DecodeError) -> CustomError {
+        CustomError::Base64Error(err)
+    }
+}
+
+impl From<std::string::FromUtf8Error> for CustomError {
+    fn from(err: std::string::FromUtf8Error) -> CustomError {
+        CustomError::Utf8Error(err)
+    }
+}
+
+use std::fmt;
+impl fmt::Display for CustomError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CustomError::HkdfError => write!(f, "Error occurred during HKDF key derivation"),
+            CustomError::Base64Error(ref err) => write!(f, "Base64 decoding error: {}", err),
+            CustomError::AesError(ref err) => write!(f, "AES encryption/decryption error: {}", err),
+            CustomError::Utf8Error(ref err) => write!(f, "UTF-8 conversion error: {}", err),
+        }
+    }
+}
+
+// aes decrypt the ciphertext string back to the original input value.
+pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
+    // Generate a hash from the password
+    let mut hasher = Sha256::new();
+    hasher.update(secret);
+    let hash = hasher.finalize();
+
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
+    hkdf.expand(&[], &mut key)
+        .map_err(|_| CustomError::HkdfError)?;
+
+    // Decode the base64 ciphertext
+    let ciphertext_decoded = BASE64_NOPAD
+        .decode(ciphertext_base64.as_bytes())
+        .map_err(CustomError::Base64Error)?;
+
+    // Decrypt the text
+    let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
+
+    // Convert the decrypted bytes to a String
+    Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
 }
