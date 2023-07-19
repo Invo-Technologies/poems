@@ -1,19 +1,25 @@
-// We need to import all the necessary libraries, modules, and crates to our project.
-mod Generation; // Importing Generation module which includes sha256 and bip39 implementation.
-use bip39::Mnemonic; // Library used to generate the mnemonic words.
-use colored::*; // This is used to color the terminal outputs.
-use hex; // Used for hexadecimal related operations.
-use std::fs; // Library used for file system operations.
-use std::io::{self, Write}; // Library for input/output operations.
-use Generation::sha256; // Our sha256 module from Generation.
-extern crate rand; // External crate for generating random numbers.
-extern crate rsa; // External crate for RSA algorithm.
-use Generation::aes::{aes_decrypt, aes_encrypt};
-use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy}; // Functions from our bip39 module.
-use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
+mod Generation;
+use Generation::aes::{invo_aes_decrypt, invo_aes_encrypt};
+use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
+use Generation::sha256;
 
-use sha2::{Digest, Sha256};
+use base64::{
+    alphabet,
+    engine::{self, general_purpose},
+    Engine as _,
+};
+use bip39::Mnemonic;
+use colored::*;
+use hex;
 use hkdf::Hkdf;
+use sha2::{Digest, Sha256};
+use std::fs;
+use std::io::{self, Write};
+
+use data_encoding::BASE64_NOPAD;
+
+extern crate rand;
+extern crate rsa;
 
 fn main() {
     // We start the program with a greeting.
@@ -144,7 +150,6 @@ fn main() {
         "\n===================== Start AES Program======================\n".yellow()
     );
 
-    // aes signature
     let mut input = String::new();
     let mut secret = String::new();
 
@@ -153,7 +158,7 @@ fn main() {
     io::stdin().read_line(&mut input).unwrap();
     let input_bytes = input.trim().as_bytes();
 
-    print!("Enter secret: ");
+    print!("\nEnter secret: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut secret).unwrap();
     let secret_bytes = secret.trim().as_bytes();
@@ -168,15 +173,14 @@ fn main() {
     let mut key = [0u8; 32];  // AES256 requires a 32-byte key
     hkdf.expand(&[], &mut key).expect("Failed to generate key");
 
-    let ciphertext = aes_encrypt(input_bytes, &key);
-    let ciphertext_base64 = general_purpose::STANDARD.encode(&ciphertext);
+    let ciphertext = invo_aes_encrypt(input_bytes, &key);
+    let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
 
-    println!("Ciphertext: {}", ciphertext_base64);
+    println!("\nCiphertext: {}", ciphertext_base64);
+}
 
-    let ciphertext_decoded = general_purpose::STANDARD.decode(&ciphertext_base64).unwrap();
-    let decrypted = aes_decrypt(&ciphertext_decoded, &key);
-
-    let decrypted_text = String::from_utf8(decrypted.to_vec()).unwrap();
-
-    println!("Decrypted Text: {}", decrypted_text);
+pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> String {
+    let ciphertext_decoded = BASE64_NOPAD.decode(ciphertext_base64.as_bytes()).unwrap();
+    let decrypted = invo_aes_decrypt(&ciphertext_decoded, secret.as_bytes());
+    String::from_utf8(decrypted.to_vec()).unwrap()
 }
