@@ -12,6 +12,9 @@ use Generation::aes::{aes_decrypt, aes_encrypt};
 use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy}; // Functions from our bip39 module.
 use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
+use sha2::{Digest, Sha256};
+use hkdf::Hkdf;
+
 fn main() {
     // We start the program with a greeting.
     println!(
@@ -155,8 +158,15 @@ fn main() {
     io::stdin().read_line(&mut secret).unwrap();
     let secret_bytes = secret.trim().as_bytes();
 
-    let mut key = [0u8; 32];
-    key[..secret_bytes.len()].copy_from_slice(secret_bytes);
+    // Generate a hash from the password
+    let mut hasher = Sha256::new();
+    hasher.update(secret_bytes);
+    let hash = hasher.finalize();
+
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32];  // AES256 requires a 32-byte key
+    hkdf.expand(&[], &mut key).expect("Failed to generate key");
 
     let ciphertext = aes_encrypt(input_bytes, &key);
     let ciphertext_base64 = general_purpose::STANDARD.encode(&ciphertext);
