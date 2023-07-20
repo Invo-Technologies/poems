@@ -22,6 +22,20 @@ use data_encoding::BASE64_NOPAD;
 extern crate rand;
 extern crate rsa;
 
+fn read_nonempty_string_from_user(prompt: &str) -> String {
+    let mut input = String::new();
+    loop {
+        print!("{}", prompt);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut input).unwrap();
+        input = input.trim().to_string();
+        if !input.is_empty() {
+            return input;
+        }
+        println!("{}","You must enter a non-empty value. Please try again.".red());
+    }
+}
+
 #[warn(non_snake_case)]
 fn main() {
     // We start the program with a greeting.
@@ -93,7 +107,7 @@ fn main() {
 
     println!(
         "{}",
-        "\n===================== Account Keys =====================\n".red()
+        "\n===================== Account Keys =====================\n".green()
     );
 
     // Generate RSA keys.
@@ -116,53 +130,30 @@ fn main() {
     );
     println!(
         "{}",
-        "\n===================== Start Sha256 Program======================\n".red()
+        "\n===================== Start Sha256 Program ======================\n".green()
     );
     println!(
         "{}",
         "\nTest program using this link: https://it-tools.tech/hmac-generator\n".blue()
     );
 
-    // Now we're starting the HMAC generation part of the program.
-    let mut input = String::new();
-    let mut secret = String::new();
+    let input = read_nonempty_string_from_user("Enter input: ");
+    let secret = read_nonempty_string_from_user("\nEnter secret: ");
 
-    // Prompt the user to enter the input and secret for HMAC.
-    print!("Enter input: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut input).unwrap();
-
-    print!("\nEnter secret: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut secret).unwrap();
-
-    // We need to remove the newline character from the end of the input and secret.
-    input.pop();
-    secret.pop();
-
-    // Generate HMAC in binary and hexadecimal formats using the input and secret.
     let (hmac_binary, hmac_hex) = sha256::generate_hmac(secret.as_bytes(), input.as_bytes());
 
-    // Print the generated HMAC in both formats.
     println!("\nHMAC in binary: {}\n", hmac_binary);
     println!("HMAC in hex: {}\n", hmac_hex);
 
     println!(
         "{}",
-        "\n===================== Start AES Program======================\n".yellow()
+        "\n===================== Start AES Program ======================\n".yellow()
     );
 
-    let mut input = String::new();
-    let mut secret = String::new();
-
-    print!("Enter text to be encrypted: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut input).unwrap();
+    let input = read_nonempty_string_from_user("Enter text to be encrypted: ");
     let input_bytes = input.trim().as_bytes();
 
-    print!("\nEnter secret: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut secret).unwrap();
+    let secret = read_nonempty_string_from_user("\nEnter secret: ");
     let secret_bytes = secret.trim().as_bytes();
 
     // Generate a hash from the password
@@ -177,35 +168,46 @@ fn main() {
 
     let ciphertext = invo_aes_encrypt(input_bytes, &key);
     let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
+    print!("{}","\nCiphertext: ".yellow());
+    println!("{}", ciphertext_base64);
 
-    println!("\nCiphertext: {}", ciphertext_base64);
+    println!(
+        "{}",
+        "\n *** Copy Cipher *** \n".yellow()
+    );
 
-    print!("\nEnter ciphertext to be decrypted: ");
-    io::stdout().flush().unwrap();
-    let mut ciphertext_to_decrypt = String::new();
-    io::stdin().read_line(&mut ciphertext_to_decrypt).unwrap();
-
-    print!("\nEnter secret for decryption: ");
-    io::stdout().flush().unwrap();
-    let mut secret_for_decryption = String::new();
-    io::stdin().read_line(&mut secret_for_decryption).unwrap();
-
-    let decrypted_text =
+    let ciphertext_to_decrypt = read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
+    
+    let mut attempt_count = 0;
+    
+    while attempt_count < 3 {
+        let secret_for_decryption = read_nonempty_string_from_user(&format!("\nEnter secret for decryption (Attempt {} of 3): ", attempt_count + 1));
+    
         match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
-            Ok(text) => text,
-            Err(e) => {
-                eprintln!("An error occurred during decryption: {:?}", e);
+            Ok(text) => {
+                print!("{}","Congrats! You successfully Decrypted the AES Cipher: ".yellow());
+                println!("'{}', was the original input text", text);
                 return;
             }
-        };
-    println!("\nDecrypted text: {}", decrypted_text);
+            Err(e) => {
+                eprintln!("An error occurred during decryption: {}", e);
+                attempt_count += 1;
+                if attempt_count == 3 {
+                    println!("You have exhausted all attempts.");
+                    return;
+                } else {
+                    println!("You have {} attempts left.", 3 - attempt_count);
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
 pub enum CustomError {
     HkdfError,
     Base64Error(data_encoding::DecodeError),
-    AesError(aes_gcm::Error),
+    AesError(aes_gcm::Error), // Here aes_gcm::Error is used directly
     Utf8Error(std::string::FromUtf8Error),
 }
 
@@ -226,15 +228,35 @@ impl From<std::string::FromUtf8Error> for CustomError {
         CustomError::Utf8Error(err)
     }
 }
-
 use std::fmt;
+
 impl fmt::Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CustomError::HkdfError => write!(f, "Error occurred during HKDF key derivation"),
+            CustomError::HkdfError => write!(f, "Failed to generate key"),
             CustomError::Base64Error(ref err) => write!(f, "Base64 decoding error: {}", err),
-            CustomError::AesError(ref err) => write!(f, "AES encryption/decryption error: {}", err),
+            CustomError::AesError(_) => write!(f, "Decryption failed, please check your secret key"),
             CustomError::Utf8Error(ref err) => write!(f, "UTF-8 conversion error: {}", err),
+        }
+    }
+}
+
+
+#[derive(Debug)]
+pub enum AesError {
+    Generic,
+}
+
+impl From<aes_gcm::Error> for AesError {
+    fn from(_err: aes_gcm::Error) -> AesError {
+        AesError::Generic
+    }
+}
+
+impl fmt::Display for AesError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            AesError::Generic => write!(f, "The provided key did not decrypt the Cipher. Please try again."),
         }
     }
 }
@@ -249,13 +271,10 @@ pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, Cus
     // Derive a 256-bit key from the hash
     let hkdf = Hkdf::<Sha256>::new(None, &hash);
     let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-    hkdf.expand(&[], &mut key)
-        .map_err(|_| CustomError::HkdfError)?;
+    hkdf.expand(&[], &mut key).map_err(|_| CustomError::HkdfError)?;
 
     // Decode the base64 ciphertext
-    let ciphertext_decoded = BASE64_NOPAD
-        .decode(ciphertext_base64.as_bytes())
-        .map_err(CustomError::Base64Error)?;
+    let ciphertext_decoded = BASE64_NOPAD.decode(ciphertext_base64.as_bytes()).map_err(CustomError::Base64Error)?;
 
     // Decrypt the text
     let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
@@ -263,3 +282,4 @@ pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, Cus
     // Convert the decrypted bytes to a String
     Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
 }
+
