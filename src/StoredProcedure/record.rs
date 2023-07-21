@@ -1,3 +1,33 @@
+use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::Write;
+
+#[derive(Serialize, Deserialize)]
+pub struct Record {
+    account_query: AccountQuery,
+    blind_asset_record: BlindAssetRecord,
+    keys: Keys,
+}
+
+impl Record {
+    pub fn new(account_query: AccountQuery, blind_asset_record: BlindAssetRecord, keys: Keys) -> Self {
+        Self {
+            account_query,
+            blind_asset_record,
+            keys,
+        }
+    }
+
+    pub fn write_to_json(&self) {
+        let json = serde_json::to_string_pretty(&self).unwrap();
+
+        let mut file = File::create("record.json").unwrap();
+        file.write_all(json.as_bytes()).unwrap();
+    }
+}
+
+
+
 
 /*
 Our program needs to take and store data for account query // Input fields
