@@ -1,11 +1,32 @@
-import { usePoemsContext } from '../hooks/usePoemContext';
-import { CgCheckO, CgRadioCheck } from 'react-icons/cg';
+import { usePoemsContext } from "../hooks/usePoemContext";
+import { CgCheckO, CgRadioCheck, CgArrowLeft } from "react-icons/cg";
+import { PrevButton } from "../shared/input/index";
+import { useState, useEffect } from "react";
 
 export default function Steps() {
   const { steps } = usePoemsContext();
-  console.log(steps);
+  const { activeStep } = usePoemsContext();
+  // console.log(activeStep)
+  const { stepss, setSteps, setActiveStep } = usePoemsContext();
+  // const goback = (step) =>{
+
+  //   if(activeStep!== 'return'){
+
+  //       setActiveStep(step.type);
+  //       step.isChecked = false
+  //     }
+  // }
+
   return (
     <div className="flex justify-around my-4 items-center">
+      {activeStep !== "account" &&
+      activeStep !== "return" &&
+      activeStep !== "decrypt" ? (
+        <PrevButton steps={steps} />
+      ) : (
+        ""
+      )}
+
       {steps.map((step, idx) => {
         const { type, isChecked } = step;
         return (
@@ -15,17 +36,17 @@ export default function Steps() {
                 className={`
                 flex flex-col justify-center items-center
                 ${
-                  type === 'account'
+                  type === "account"
                     ? `text-account-dark`
-                    : type === 'generation'
+                    : type === "generation"
                     ? `text-generation-dark`
-                    : type === 'aleo'
+                    : type === "aleo"
                     ? `text-aleo-dark`
-                    : type === 'return'
+                    : type === "return"
                     ? `text-return-dark`
-                    : type === 'decrypt'
+                    : type === "decrypt"
                     ? `text-decrypt-dark`
-                    : ''
+                    : ""
                 }  
             `}
               >

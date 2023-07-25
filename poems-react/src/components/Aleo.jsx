@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { InputEl, ButtonEl, GenerationBtnCheck } from '../shared/input';
-import { usePoemsContext } from '../hooks/usePoemContext';
+import { useState } from "react";
+import {
+  InputEl,
+  ButtonEl,
+  AleoBtnCheck,
+} from "../shared/input";
+import { usePoemsContext } from "../hooks/usePoemContext";
 
 export default function Aleo() {
   const { steps, setSteps, setActiveStep } = usePoemsContext();
 
   const newSteps = steps.map((step, _) => {
-    if (step.type === 'aleo') {
+    if (step.type === "aleo") {
       step.isChecked = true;
     }
     return step;
@@ -14,7 +18,7 @@ export default function Aleo() {
 
   const handleNext = () => {
     setSteps([...newSteps]);
-    setActiveStep('return');
+    setActiveStep("return");
   };
 
   return (
@@ -26,9 +30,15 @@ export default function Aleo() {
         <h1 className="text-sm w-[90%] mx-auto">
           Encrypt sign and send your function hashes to Aleo
         </h1>
+        <div className="flex mt-5 flex-wrap gap-y-2 justify-around items-center mb-8">
+          <AleoBtnCheck id={"purchase"} text={"Purchase"} />
+          <AleoBtnCheck id={"recover-account"} text={"Recover Account"} />
+          <AleoBtnCheck id={"spend"} text={"Spend"} />
+          <AleoBtnCheck id={"transfer"} text={"Transfer"} />
+          <AleoBtnCheck id={"send"} text={"Send"} />
+        </div>
       </div>
       <div className="flex flex-col md:flex-row justify-between items-center"></div>
-
       <div className="mb-8 w-[80%] m-auto"></div>
       <div className="w-full mb-8 flex justify-center items-center">
         <ButtonEl
@@ -37,7 +47,6 @@ export default function Aleo() {
           text="Encrypt functions"
         />
       </div>
-
       <div>
         <div className="w-full text-center my-8">
           <h1 className="text-aleo-dark font-bold text-3xl mb-1">
@@ -48,7 +57,6 @@ export default function Aleo() {
             Aleo
           </h1>
         </div>
-
         <div className="mb-8 w-[80%] m-auto">
           <div class="flex items-center mb-4">
             <input
