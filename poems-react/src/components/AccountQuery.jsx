@@ -1,4 +1,12 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
+=======
+<<<<<<< HEAD
+import { useState } from 'react';
+=======
+import { useState, useEffect } from 'react';
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
 import { InputEl, ButtonEl } from '../shared/input';
 import { usePoemsContext } from '../hooks/usePoemContext';
 
@@ -8,6 +16,11 @@ export default function AccountQuery() {
   const [gamerTag, setGamerTag] = useState('');
   const { steps, setSteps, setActiveStep } = usePoemsContext();
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
   useEffect(() => {
     // Retrieve data from session storage and populate input fields on component mount
     const storedDefaultCurrency = window.sessionStorage.getItem('defaultCurrency');
@@ -20,6 +33,10 @@ export default function AccountQuery() {
     }
   }, []);
 
+<<<<<<< HEAD
+=======
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
   const newSteps = steps.map((step, _) => {
     if (step.type === 'account') {
       step.isChecked = true;
@@ -68,6 +85,11 @@ export default function AccountQuery() {
           />
         </div>
       </div>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
       <div className="flex flex-col md:flex-row justify-between items-center">
         <div className="w-full md:w-[45%]">
           <InputEl
@@ -87,6 +109,10 @@ export default function AccountQuery() {
           />
         </div>
       </div>
+<<<<<<< HEAD
+=======
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
       <div className="flex flex-col justify-between items-center">
         <InputEl

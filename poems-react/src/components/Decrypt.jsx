@@ -12,6 +12,28 @@ export default function Decrypt() {
     return step;
   });
 
+<<<<<<< HEAD
+  const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState(false)
+
+=======
+<<<<<<< HEAD
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
+  const handleNext = () => {
+    setSteps([...newSteps]);
+    setActiveStep("decrypt");
+    setSuccess(true)
+    
+    setTimeout(() => {
+      let getLoad = document.getElementById('load')
+      getLoad.style.display = 'none'
+      setSuccessMessage(true)
+    }, 7500)
+  };
+
+<<<<<<< HEAD
+=======
+=======
   const [success, setSuccess] = useState(false)
   const [successMessage, setSuccessMessage] = useState(false)
 
@@ -27,12 +49,17 @@ export default function Decrypt() {
     }, 7500)
   };
 
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
     
     
   
 
 
+<<<<<<< HEAD
+=======
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
   return (
     <div className="mt-4">
       <div className="w-full text-center my-8">
@@ -88,6 +115,11 @@ export default function Decrypt() {
           className="border border-white bg-decrypt-dark hover:bg-decrypt-light text-white"
           text="Decrypt functions"
         />
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
         <div className='ml-5' style={{ display: success ? 'flex' : 'none' }} id='load'>
           <button href='' className='btn_decrypt' type=''>
@@ -102,6 +134,10 @@ export default function Decrypt() {
         <div className='success ml-2' style={{ display: successMessage ? 'flex' : 'none'  }}>
           Success!
         </div>
+<<<<<<< HEAD
+=======
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
       </div>
 
       

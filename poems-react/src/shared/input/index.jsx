@@ -107,6 +107,11 @@ export const PoemsLogo = ({ className }) => {
     </div>
   );
 };
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
 export const PrevButton = (props) => {
   const { steps } = usePoemsContext();
@@ -139,3 +144,7 @@ export const PrevButton = (props) => {
     </button>
   );
 };
+<<<<<<< HEAD
+=======
+>>>>>>> 93a5493 (Add step icons and labels to Steps component)
+>>>>>>> 17ad3de (Add step icons and labels to Steps component)
