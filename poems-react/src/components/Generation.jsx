@@ -34,6 +34,7 @@ export default function Generation() {
             className="bg-black text-generation-dark cursor-pointer"
             showLabel={true}
             labelText="BEP 39"
+            disabled={true}
             placeholder="Mnemonic:"
           />
         </div>
@@ -43,6 +44,7 @@ export default function Generation() {
             showLabel={true}
             labelText="seed"
             className="invisible"
+            disabled={true}
             placeholder="seed:"
           />
         </div>
@@ -54,6 +56,7 @@ export default function Generation() {
             className="bg-black text-generation-dark cursor-pointer"
             showLabel={true}
             labelText="RSA"
+            disabled={true}
             placeholder="Public key:"
           />
         </div>
@@ -63,6 +66,7 @@ export default function Generation() {
             showLabel={true}
             labelText="seed"
             className="invisible"
+            disabled={true}
             placeholder="private key:"
           />
         </div>
@@ -74,6 +78,7 @@ export default function Generation() {
             className="bg-black text-generation-dark cursor-pointer"
             showLabel={true}
             labelText="seed"
+            disabled={true}
             placeholder="Public key:"
           />
         </div>
@@ -82,6 +87,7 @@ export default function Generation() {
           <InputEl
             showLabel={true}
             labelText="seed"
+            disabled={true}
             className="invisible"
             placeholder="private key:"
           />

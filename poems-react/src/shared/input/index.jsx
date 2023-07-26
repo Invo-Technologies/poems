@@ -46,7 +46,7 @@ export const ButtonEl = ({ text, className, handleClick }) => {
 
 export const GenerationBtnCheck = ({ text, id }) => {
   return (
-    <div onClick={() => alert("hello")}>
+    <div>
       <input type="checkbox" id={id} value="" className="hidden peer" />
       <label
         for={id}
@@ -119,10 +119,15 @@ export const PrevButton = (props) => {
           let index = step.findIndex((x) => x.type === activeStep);
           if (index === 0) {
             setActiveStep(step[index].type);
-            step.isChecked = false;
-          } else {
+            step[i].isChecked = false;
+          } 
+          else{
             setActiveStep(step[index - 1].type);
-            step.isChecked = false;
+            step[i].isChecked = false;
+            step[index].isChecked = false
+            step[index - 1].isChecked = false;
+            step[index - 2].isChecked = true;
+            step[index - 3].isChecked = false;
           }
         }
       }

@@ -1,20 +1,41 @@
-import { useState } from "react";
-import { InputEl, ButtonEl } from "../shared/input";
-import { usePoemsContext } from "../hooks/usePoemContext";
+import { useState, useEffect } from 'react';
+import { InputEl, ButtonEl } from '../shared/input';
+import { usePoemsContext } from '../hooks/usePoemContext';
 
 export default function AccountQuery() {
   const [showAcctID, setShowAcctID] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState('');
+  const [gamerTag, setGamerTag] = useState('');
   const { steps, setSteps, setActiveStep } = usePoemsContext();
+
+  useEffect(() => {
+    // Retrieve data from session storage and populate input fields on component mount
+    const storedDefaultCurrency = window.sessionStorage.getItem('defaultCurrency');
+    const storedGamerTag = window.sessionStorage.getItem('gamerTag');
+    if (storedDefaultCurrency) {
+      setDefaultCurrency(storedDefaultCurrency);
+    }
+    if (storedGamerTag) {
+      setGamerTag(storedGamerTag);
+    }
+  }, []);
+
   const newSteps = steps.map((step, _) => {
-    if (step.type === "account") {
+    if (step.type === 'account') {
       step.isChecked = true;
     }
     return step;
   });
+
   const handleNext = () => {
+    // Save defaultCurrency and gamerTag to session storage
+    window.sessionStorage.setItem('defaultCurrency', defaultCurrency);
+    window.sessionStorage.setItem('gamerTag', gamerTag);
+
     setSteps([...newSteps]);
-    setActiveStep("generation");
+    setActiveStep('generation');
   };
+
   return (
     <div className="mt-4">
       <div className="w-full text-center my-8">
@@ -33,6 +54,8 @@ export default function AccountQuery() {
             showLabel={true}
             labelText="Default currency"
             placeholder="currency:"
+            value={defaultCurrency}
+            onChange={(e) => setDefaultCurrency(e.target.value)}
           />
         </div>
         <div className="w-full md:w-[45%]">
@@ -52,6 +75,8 @@ export default function AccountQuery() {
             showLabel={true}
             labelText="Gamer Tag"
             placeholder="gamer tag:"
+            value={gamerTag}
+            onChange={(e) => setGamerTag(e.target.value)}
           />
         </div>
         <div className="w-full md:w-[45%]">
