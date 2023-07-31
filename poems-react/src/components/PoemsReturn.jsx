@@ -8,7 +8,6 @@ const PoemsReturn = () => {
   const newSteps = steps.map((step) =>
     step.type === "return" ? { ...step, isChecked: true } : step
   );
-
   const handleNext = () => {
     setSteps(newSteps);
     setActiveStep("decrypt");
@@ -22,7 +21,6 @@ const PoemsReturn = () => {
       setTimeout(() => {setShow3(true), setLoad3(true)}, 15000),
       setTimeout(() => {setShow4(true), setLoad3(false)}, 18750),
     ];
-
     return () => {
       timers.forEach((timer) => clearTimeout(timer));
     };
@@ -38,7 +36,6 @@ const PoemsReturn = () => {
   const [show2, setShow2] = useState(false);
   const [show3, setShow3] = useState(false);
   const [show4, setShow4] = useState(false);
-
   return (
     <>
       <div className='content p-7'>
@@ -79,7 +76,6 @@ const PoemsReturn = () => {
             </div>
           </div>
         </div>
-
         <div className='loaders'>
           {load && (
             <div>
@@ -104,7 +100,6 @@ const PoemsReturn = () => {
               </button>
             </div>
           )}
-
           {load2 && (
             <div>
               <button href='' className='btn_form load3' type=''>
@@ -130,7 +125,6 @@ const PoemsReturn = () => {
           )}
         </div>
       </div>
-
       <div className="w-full poem mt-1 px-5">
         {show4 && (
           <>

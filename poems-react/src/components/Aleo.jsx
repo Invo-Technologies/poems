@@ -1,13 +1,5 @@
 import { useState } from 'react';
-<<<<<<< HEAD
-import { InputEl, ButtonEl, AleoBtnCheck } from '../shared/input';
-=======
-<<<<<<< HEAD
-import { InputEl, ButtonEl, GenerationBtnCheck } from '../shared/input';
-=======
-import { InputEl, ButtonEl, AleoBtnCheck } from '../shared/input';
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
+import { ButtonEl, AleoBtnCheck } from '../shared/input';
 import { usePoemsContext } from '../hooks/usePoemContext';
 
 export default function Aleo() {
@@ -20,7 +12,6 @@ export default function Aleo() {
     }
     return step;
   });
-
   const handleNext = () => {
     setSteps([...newSteps]);
     setActiveStep('return');
@@ -35,11 +26,6 @@ export default function Aleo() {
         <h1 className="text-sm w-[90%] mx-auto">
           Encrypt sign and send your function hashes to Aleo
         </h1>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
         <div className="flex mt-5 flex-wrap gap-y-2 justify-around items-center mb-8">
           <AleoBtnCheck id={'purchase'} text={'Purchase'} />
           <AleoBtnCheck id={'recover-account'} text={'Recover Account'} />
@@ -47,52 +33,16 @@ export default function Aleo() {
           <AleoBtnCheck id={'transfer'} text={'Transfer'} />
           <AleoBtnCheck id={'send'} text={'Send'} />
         </div>
-<<<<<<< HEAD
-=======
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
       </div>
       <div className="flex flex-col md:flex-row justify-between items-center"></div>
       <div className="mb-8 w-[80%] m-auto"></div>
       <div className="w-full mb-8 flex justify-center items-center">
         <ButtonEl
+          handleClick={() => setShowSelectFunc(!showSelectFunc)}
           className="border border-white bg-aleo-dark hover:bg-aleo-light text-white"
           text="Encrypt functions"
-          handleClick={() => setShowSelectFunc(!showSelectFunc)}
         />
       </div>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-      <div>
-        <div className="w-full text-center my-8">
-          <h1 className="text-aleo-dark font-bold text-3xl mb-1">
-            Nucleo Wallet
-          </h1>
-          <h1 className="text-sm w-[90%] mx-auto">
-            You agree to sign and send your Blind Asset Record from Poems to
-            Aleo
-          </h1>
-        </div>
-
-        <div className="mb-8 w-[80%] m-auto">
-          <div class="flex items-center mb-4">
-            <input
-              id="default-radio-1"
-              type="radio"
-              value=""
-              name="default-radio"
-              className="w-4 h-4 text-white focus:ring-white"
-            />
-            <label
-              for="default-radio-1"
-              className="ml-2 text-sm font-medium text-aleo-light"
-            >
-              I agree
-            </label>
-=======
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
       {showSelectFunc && (
         <div>
           <div>
@@ -115,7 +65,7 @@ export default function Aleo() {
                   className="w-4 h-4 text-white focus:ring-white"
                 />
                 <label
-                  for="default-radio-1"
+                  htmlFor="default-radio-1"
                   className="ml-2 text-sm font-medium text-aleo-light"
                 >
                   I agree
@@ -131,19 +81,14 @@ export default function Aleo() {
                   className="w-4 h-4 text-white focus:ring-white"
                 />
                 <label
-                  for="default-radio-2"
+                  htmlFor="default-radio-2"
                   className="ml-2 text-sm font-medium text-aleo-light"
                 >
                   I do not agree to send Aleo my encrypted data
                 </label>
               </div>
             </div>
-<<<<<<< HEAD
-=======
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
           </div>
-
           <div className="w-full mb-8 flex justify-center items-center">
             <ButtonEl
               handleClick={handleNext}

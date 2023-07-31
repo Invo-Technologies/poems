@@ -208,7 +208,7 @@
 	left:1%;
 }
 .success{
-	display:flex;
+	display:none;
 	color:#ff8c00;
 	font-size:20px;
 	text-align: center;

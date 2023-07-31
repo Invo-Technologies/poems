@@ -8,6 +8,7 @@ export const InputEl = ({
   placeholder,
   disabled,
   className,
+  onChange
 }) => {
   return (
     <div className="w-full mb-6">
@@ -25,6 +26,7 @@ export const InputEl = ({
         type="text"
         placeholder={placeholder}
         className="p-2 bg-transparent w-full border disabled:border-[#2C3137] outline-none rounded-md"
+        onChange={onChange}
       />
       {/* <label className="label">
         <span className="label-text-alt">Bottom Right label</span>
@@ -49,7 +51,7 @@ export const GenerationBtnCheck = ({ text, id }) => {
     <div>
       <input type="checkbox" id={id} value="" className="hidden peer" />
       <label
-        for={id}
+        htmlFor={id}
         className="inline-flex items-center justify-between w-fit py-1 px-2 text-generation-dark bg-black
         rounded-md cursor-pointer hover:text-generation-dark peer-checked:text-generation-dark
         peer-checked:bg-white hover:bg-white"
@@ -67,8 +69,7 @@ export const DecryptBtnCheck = ({ text, id }) => {
     <div>
       <input type="checkbox" id={id} value="" className="hidden peer" />
       <label
-        onClick={() => alert()}
-        for={id}
+        htmlFor={id}
         className="inline-flex items-center justify-between w-fit py-1 px-2 text-decrypt-dark bg-black
         rounded-md cursor-pointer hover:text-decrypt-dark peer-checked:text-decrypt-dark
         peer-checked:bg-white hover:bg-white"
@@ -86,7 +87,7 @@ export const AleoBtnCheck = ({ text, id }) => {
     <div>
       <input type="checkbox" id={id} value="" className="hidden peer" />
       <label
-        for={id}
+        htmlFor={id}
         className="inline-flex items-center justify-between w-fit py-1 px-2 text-aleo-dark bg-black
         rounded-md cursor-pointer hover:text-aleo-dark peer-checked:text-aleo-dark
         peer-checked:bg-white hover:bg-white"
@@ -107,11 +108,6 @@ export const PoemsLogo = ({ className }) => {
     </div>
   );
 };
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
 export const PrevButton = (props) => {
   const { steps } = usePoemsContext();
@@ -144,7 +140,3 @@ export const PrevButton = (props) => {
     </button>
   );
 };
-<<<<<<< HEAD
-=======
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)

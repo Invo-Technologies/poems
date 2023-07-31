@@ -12,55 +12,36 @@ export default function Decrypt() {
     return step;
   });
 
-<<<<<<< HEAD
   const [success, setSuccess] = useState(false)
-  const [successMessage, setSuccessMessage] = useState(false)
-
-=======
-<<<<<<< HEAD
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
-  const handleNext = () => {
-    setSteps([...newSteps]);
-    setActiveStep("decrypt");
-    setSuccess(true)
-    
-    setTimeout(() => {
-      let getLoad = document.getElementById('load')
-      getLoad.style.display = 'none'
-      setSuccessMessage(true)
-    }, 7500)
-  };
-
-<<<<<<< HEAD
-=======
-=======
-  const [success, setSuccess] = useState(false)
-  const [successMessage, setSuccessMessage] = useState(false)
 
   const handleNext = () => {
     setSteps([...newSteps]);
     setActiveStep("decrypt");
     setSuccess(true)
-    
-    setTimeout(() => {
+     setTimeout(() => {
       let getLoad = document.getElementById('load')
+      let getMessage = document.getElementById('successMessage')
       getLoad.style.display = 'none'
-      setSuccessMessage(true)
+      getMessage.style.display = 'flex'
     }, 7500)
   };
 
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
 
-    
-    
+  const [x, setX] = useState('')
+  const[s, setS] = useState('')
+
+  const handleSubmit = e =>{
+    e.preventDefault()
+    const data = {
+      X: x,
+      S: s,
+    }
+    sessionStorage.setItem('decryptPageData', JSON.stringify(data))
+  }
   
 
-
-<<<<<<< HEAD
-=======
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
   return (
+    <form onSubmit={handleSubmit}>
     <div className="mt-4">
       <div className="w-full text-center my-8">
         <h1 className="text-sm w-[90%] mx-auto">
@@ -68,7 +49,6 @@ export default function Decrypt() {
           same interpretations as you do.
         </h1>
       </div>
-
       <div className="w-[90%] max-w-xl mx-auto">
         <div className="flex flex-wrap gap-y-2 justify-around items-center mb-8">
           <DecryptBtnCheck id={"purchase"} text={"Purchase"} />
@@ -77,7 +57,6 @@ export default function Decrypt() {
           <DecryptBtnCheck id={"transfer"} text={"Transfer"} />
           <DecryptBtnCheck id={"send"} text={"Send"} />
         </div>
-
         <div className="w-full max-w-lg mx-auto">
           <ol className="text-decrypt-light list-decimal mb-8">
             <li>
@@ -91,36 +70,32 @@ export default function Decrypt() {
             <li>Click "Decrypt" and the program will interprete your poem.</li>
           </ol>
         </div>
-
         <div className="mb-8 m-auto">
           <InputEl
             showLabel={false}
             labelText="x"
             className="invisible"
             placeholder="X:"
+            value={x}
+            onChange={(e) => setX(e.target.value)}
           />
-
           <InputEl
             showLabel={false}
             labelText="s"
             className="invisible"
             placeholder="S:"
+            value={s}
+            onChange={(e) => setS(e.target.value)}
           />
         </div>
       </div>
-
       <div className="w-full mb-8 flex justify-center items-center">
         <ButtonEl
           handleClick={handleNext}
           className="border border-white bg-decrypt-dark hover:bg-decrypt-light text-white"
           text="Decrypt functions"
+          onClick={handleSubmit}
         />
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
-
         <div className='ml-5' style={{ display: success ? 'flex' : 'none' }} id='load'>
           <button href='' className='btn_decrypt' type=''>
             <span></span>
@@ -130,17 +105,11 @@ export default function Decrypt() {
             decrypting <i className='bi-arrow-right'></i>
           </button>
         </div>
-
-        <div className='success ml-2' style={{ display: successMessage ? 'flex' : 'none'  }}>
-          Success!
+        <div className='success ml-2'  id='successMessage'>
+          Success! 
         </div>
-<<<<<<< HEAD
-=======
->>>>>>> 93a5493 (Add step icons and labels to Steps component)
->>>>>>> 17ad3de (Add step icons and labels to Steps component)
       </div>
-
-      
     </div>
+    </form>
   );
 }
