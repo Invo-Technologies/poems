@@ -1,4 +1,3 @@
 #[allow(non_snake_case)]
-pub mod Generation;
-// pub mod StoredProcedure; uncomment this to run stored procedure
-
+pub mod generation_procedure;
+pub mod stored_procedure;

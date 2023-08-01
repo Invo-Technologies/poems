@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-mod Generation;
+mod generation_procedure;
+mod stored_procedure;
 #[allow(unused_imports)]
 use base64::{
     alphabet,
@@ -8,15 +9,14 @@ use base64::{
 };
 use bip39::Mnemonic;
 use colored::*;
+use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
+use generation_procedure::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
+use generation_procedure::sha256;
 use hex;
 use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::io::{self, Write};
-use Generation::aes::{invo_aes_decrypt, invo_aes_encrypt};
-use Generation::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
-use Generation::sha256;
-
 
 use data_encoding::BASE64_NOPAD;
 
@@ -115,7 +115,7 @@ fn main() {
     );
 
     // Generate RSA keys.
-    match Generation::rsa::generate_rsa_keys() {
+    match generation_procedure::rsa::generate_rsa_keys() {
         Ok(()) => {
             // Read the generated RSA private and public keys from the files.
             let private_key =
@@ -130,7 +130,7 @@ fn main() {
     }
     println!(
         "{}",
-        "\n===================== End of Key Generation ======================\n".blue()
+        "\n===================== End of Key generation_procedure ======================\n".blue()
     );
     println!(
         "{}",

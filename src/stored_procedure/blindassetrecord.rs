@@ -1,13 +1,18 @@
 // This is the main structure for the BlindAssetRecord.
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Serialize, Deserialize)]
 pub struct BlindAssetRecord {
     // The viewing key is a large String that can be changed.
     pub viewing_key: Option<String>,
     // The function_ids field is a map that associates each "z" with a function name.
     // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
     // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
-    pub function_ids: Option<HashMap<String, String>>, 
+    pub function_ids: Option<HashMap<String, String>>,
 }
 
+#[allow(dead_code)] //remove for testing purposes
 impl BlindAssetRecord {
     // The constructor function for BlindAssetRecord.
     // It creates a new BlindAssetRecord with no viewing_key and an empty map of function_ids.
@@ -18,10 +23,9 @@ impl BlindAssetRecord {
         }
     }
 
-    // This function allows us to set the viewing_key with a provided String.
-    // pub fn set_viewing_key(&mut self, viewing_key: String) {
-    //     self.viewing_key = Some(viewing_key);
-    // }
+    pub fn set_viewing_key(&mut self, viewing_key: String) {
+        self.viewing_key = Some(viewing_key);
+    }
 
     // This function allows us to associate a "z" identifier with a function name.
     // The function name is passed as a String.
@@ -32,12 +36,9 @@ impl BlindAssetRecord {
     }
 }
 
-
-
-
 // - viewing Key
 // - function_ids
-// -- z1 = purchase = "bind_id" 
+// -- z1 = purchase = "bind_id"
 // -- z2 = recover = "bind_id"
 // -- z3 = spend = "bind_id"
 // -- z4 = transfer = "bind_id"

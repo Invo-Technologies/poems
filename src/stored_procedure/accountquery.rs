@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct AccountQuery {
     pub node_id: Option<String>,
     pub game_id: Option<String>,
@@ -10,18 +13,19 @@ pub struct AccountQuery {
     pub public_key: Option<String>,
 }
 
+#[allow(dead_code)] //remove for testing purposes
 impl AccountQuery {
     pub fn new() -> Self {
         Self {
-            node_id: None,
-            game_id: None,
-            default_currency: None,
-            load_balance: None,
-            pool_id: None,
-            asset_id: None,
-            account_id: None,
-            gamertag: None,
-            public_key: None,
+            node_id: None,          // Aleo
+            game_id: None,          // Aleo
+            default_currency: None, //chosen
+            load_balance: None,     //chosen --
+            pool_id: None,          //Aleo
+            asset_id: None,         // Aleo
+            account_id: None,       //Aleo
+            gamertag: None,         //chosen
+            public_key: None,       //generated
         }
     }
 

@@ -6,6 +6,7 @@ use aes_gcm::{
 use rand::Rng;
 use sha2::{Digest, Sha256};
 
+#[allow(dead_code)] //remove for testing purposes
 pub fn invo_aes_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
     // Hash the key to derive a 32-byte key.
     let mut hasher = Sha256::new();
