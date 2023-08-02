@@ -1,7 +1,7 @@
-#![allow(non_snake_case)]
 mod generation_procedure;
 mod stored_procedure;
 #[allow(unused_imports)]
+use crate::stored_procedure::keys::Keys;
 use base64::{
     alphabet,
     engine::{self, general_purpose},
@@ -10,7 +10,7 @@ use base64::{
 use bip39::Mnemonic;
 use colored::*;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
-use generation_procedure::bip39::{generate_entropy, hex_to_bin, hex_to_entropy};
+use generation_procedure::bip39::{generate_entropy,generate_mnemonic_and_seed, hex_to_bin, hex_to_entropy};
 use generation_procedure::sha256;
 use hex;
 use hkdf::Hkdf;
@@ -22,6 +22,17 @@ use data_encoding::BASE64_NOPAD;
 
 extern crate rand;
 extern crate rsa;
+
+// fn read_nonempty_string_from_user_with_default(prompt: &str, default: &str) -> String {
+//     let mut input = String::new();
+//     println!("{} (default: {})", prompt, default);
+//     std::io::stdin().read_line(&mut input).unwrap();
+//     if input.trim().is_empty() {
+//         default.to_string()
+//     } else {
+//         input.trim().to_string()
+//     }
+// }
 
 fn read_nonempty_string_from_user(prompt: &str) -> String {
     let mut input = String::new();
@@ -45,46 +56,19 @@ fn main() {
     // We start the program with a greeting.
     println!(
         "{}",
-        "\n===================== BIP39 Program =====================\n".green()
+        "\n===================== BIP39 Program ======================\n".green()
     );
     println!("\nTest program using this link: https://learnmeabitcoin.com/technical/mnemonic\n");
 
-    // Generate entropy for mnemonic using BIP39 standard.
-    let entropy = generate_entropy();
+    // Initialize the Keys struct
+    let mut keys = Keys::new();
 
-    // Convert the entropy from Vec<u8> to hexadecimal String.
-    let entropy_hex = hex::encode(&entropy);
-    println!("{}", "\n=== Generated Entropy ===".green());
-    println!("{}", entropy_hex);
+    // Generate entropy for mnemonic using BIP39 standard and set in keys.
+    let entropy = generate_entropy(&mut keys);
 
-    // Convert the hexadecimal string to binary string.
-    match hex_to_bin(&entropy_hex) {
-        Ok(bin_string) => {
-            println!("{}", "\n=== Entropy in Binary ===".green());
-            println!("{}", bin_string);
-        }
-        Err(e) => {
-            println!("{}", "\n=== Error while converting hex to binary ===".red());
-            eprintln!("{:?}", e);
-        }
-    };
-
-    // Generate a mnemonic from the entropy.
-    match Mnemonic::from_entropy(&entropy) {
-        Ok(mnemonic) => {
-            println!("{}", "\n=== Mnemonic Phrase ===".green());
-            println!("{}", mnemonic);
-
-            // Derive seed from mnemonic.
-            let seed = mnemonic.to_seed("");
-            println!("{}", "\n=== Derived Seed ===".green());
-            println!("{}", hex::encode(&seed));
-
-            // Verify mnemonic by converting it back to entropy.
-            let original_entropy = mnemonic.to_entropy();
-            println!("{}", "\n=== Original Entropy from Mnemonic ===".green());
-            println!("{}", hex::encode(&original_entropy));
-        }
+    // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
+    match generate_mnemonic_and_seed(&mut keys, &entropy) {
+        Ok(_) => (),
         Err(e) => {
             println!(
                 "{}",
@@ -94,11 +78,16 @@ fn main() {
         }
     };
 
-    // Verify entropy by converting hexadecimal back to original entropy.
+
+  
+    //original binary to entropy
+    let entropy_hex = keys.get_e().map(|s| s.to_string()).unwrap_or_default();
     match hex_to_entropy(&entropy_hex) {
-        Ok(original_entropy) => {
-            println!("{}", "\n=== Original Entropy from Hex ===".green());
-            println!("{}", hex::encode(&original_entropy));
+        Ok(decoded_entropy) => {
+            let binary_entropy: Vec<String> = decoded_entropy.iter()
+                .map(|byte| format!("{:08b}", byte))
+                .collect();
+            println!("{}", binary_entropy.join(""));
         }
         Err(e) => {
             println!(
@@ -109,22 +98,77 @@ fn main() {
         }
     };
 
+    println!("\n");
+
+    match keys.get_e() {
+        Some(e) => println!(
+            "\nThe entropy stored in stored_procedure/keys.rs is: {}\n",
+            e.red()
+        ),
+        None => println!("No entropy found in keys."),
+    }
+
+    match keys.get_m() {
+        Some(m) => println!(
+            "\nThe mnemonic stored in stored_procedure/keys.rs is: {}\n",
+            m.red()
+        ),
+        None => println!("No mnemonic found in keys."),
+    }
+
+    match keys.get_d() {
+        Some(d) => println!(
+            "\nThe derived seed stored in stored_procedure/keys.rs is: {}\n",
+            d.red()
+        ),
+        None => println!("No derived seed found in keys."),
+    }
+
+    //------------------------------------------------------------------------------------------------
+
+    // match keys.get_e() {
+    //     Some(e) => println!(
+    //         "\nThe entropy stored in stored_procedure/keys.rs is: {}\n",
+    //         e.red()
+    //     ),
+    //     None => println!("No entropy found in keys."),
+    // }
+
+    // match keys.get_m() {
+    //     Some(m) => println!(
+    //         "\nThe mnemonic stored in stored_procedure/keys.rs is: {}\n",
+    //         m.red()
+    //     ),
+    //     None => println!("No mnemonic found in keys."),
+    // }
+    // match keys.get_d() {
+    //     Some(m) => println!(
+    //         "\nThe derived seed stored in stored_procedure/keys.rs is: {}\n",
+    //         m.red()
+    //     ),
+    //     None => println!("No mnemonic found in keys."),
+    // }
+    //------------------------------------------------------------------------------------------------
+
     println!(
         "{}",
-        "\n===================== Account Keys =====================\n".green()
+        "\n===================== Account Keys =====================\n".blue()
     );
 
-    // Generate RSA keys.
     match generation_procedure::rsa::generate_rsa_keys() {
         Ok(()) => {
-            // Read the generated RSA private and public keys from the files.
-            let private_key =
-                fs::read_to_string("private_key.pem").expect("Could not read private key file");
-            let public_key =
-                fs::read_to_string("public_key.pem").expect("Could not read public key file");
+            // Fetch the RSA private and public keys from the GLOBAL_KEYS
+            let keys = stored_procedure::keys::KEYS.lock().unwrap();
+            let _private_key = keys
+                .get_pk()
+                .map(|s| s.clone())
+                .unwrap_or_else(|| "No private key found".to_string());
+            let _public_key = keys
+                .get_p()
+                .map(|s| s.clone())
+                .unwrap_or_else(|| "No public key found".to_string());
 
-            println!("\n{}", private_key);
-            println!("\n{}", public_key);
+            println!("\nEnd of match");
         }
         Err(e) => eprintln!("An error occurred: {}", e),
     }
@@ -132,22 +176,52 @@ fn main() {
         "{}",
         "\n===================== End of Key generation_procedure ======================\n".blue()
     );
+    //this is how we get the keys again
+    // After some processing, fetching the keys again.
+    // let keys = stored_procedure::keys::KEYS.lock().unwrap();
+    // let private_key = keys.get_pk().unwrap_or("No private key found".to_string());
+    // let public_key = keys.get_p().unwrap_or("No public key found".to_string());
+
+    // println!("\n this is a printed : {}\n", private_key);
+    // println!("\nso is this : {}\n", public_key);
+
     println!(
         "{}",
         "\n===================== Start Sha256 Program ======================\n".green()
     );
+    match sha256::generate_hmac_from_keys() {
+        Ok(_) => println!("HMAC generated successfully"),
+        Err(e) => eprintln!("An error occurred: {}", e),
+    }
     println!(
         "{}",
         "\nTest program using this link: https://it-tools.tech/hmac-generator\n".blue()
     );
+    match keys.get_d() {
+        Some(m) => println!(
+            "\nThe derived seed stored in stored_procedure/keys.rs is: {}\n",
+            m.red()
+        ),
+        None => println!("No mnemonic found in keys."),
+    }
 
-    let input = read_nonempty_string_from_user("Enter input: ");
-    let secret = read_nonempty_string_from_user("\nEnter secret: ");
+
+    let input = read_nonempty_string_from_user("\nEnter input / seed: ");
+
+    let secret = read_nonempty_string_from_user("\nEnter secret private key: ");
 
     let (hmac_binary, hmac_hex) = sha256::generate_hmac(secret.as_bytes(), input.as_bytes());
 
-    println!("\nHMAC in binary: {}\n", hmac_binary);
-    println!("HMAC in hex: {}\n", hmac_hex);
+    println!("\nHMAC in binary: {}\n", hmac_binary.red());
+    println!("\nHMAC in hex: {}\n", hmac_hex.red());
+
+    match keys.get_y() {
+        Some(y) => println!(
+            "\nthis is the y thats stored in keys.rs : {}\n",
+            y.bright_yellow()
+        ),
+        None => println!("No y found in keys.rs"),
+    }
 
     println!(
         "{}",

@@ -14,7 +14,7 @@ pub struct Record {
     keys: Keys,
 }
 
-#[allow(dead_code)]
+#[allow(dead_code)] //remove for testing purposes
 impl Record {
     pub fn new(
         account_query: AccountQuery,
