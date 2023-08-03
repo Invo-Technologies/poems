@@ -35,7 +35,7 @@ pub fn generate_entropy(keys: &mut Keys) -> Vec<u8> {
 pub fn generate_mnemonic_and_seed(keys: &mut Keys, entropy: &Vec<u8>) -> Result<(), bip39::Error> {
     match Mnemonic::from_entropy(entropy) {
         Ok(mnemonic) => {
-            println!("{}", "\n=== Mnemonic Phrase ===".green());
+            println!("{}", "\n=== Mnemonic Phrase ===".purple());
             println!("{}", mnemonic);
 
             keys.set_m(&mnemonic.to_string());
@@ -44,11 +44,12 @@ pub fn generate_mnemonic_and_seed(keys: &mut Keys, entropy: &Vec<u8>) -> Result<
             let derived_seed = hex::encode(&seed);
             keys.set_d(&derived_seed.to_string());
 
-            println!("{}", "\n=== Derived Seed ===".green());
+            println!("{}", "\n=== Derived Seed ===".purple());
             println!("{}", hex::encode(&seed));
 
             let original_entropy = mnemonic.to_entropy();
-            println!("{}", "\n=== Original Entropy from Mnemonic ===".green());
+            print!("\nbip39.rs --51 {:?}", &original_entropy);
+            println!("{}", "\n=== Original Entropy from Mnemonic ===".purple());
             println!("{}", hex::encode(&original_entropy));
 
             Ok(())
@@ -71,12 +72,12 @@ pub fn hex_to_bin(hex_string: &str) -> Result<String, hex::FromHexError> {
 // This function converts a hexadecimal string back to entropy (vector of bytes).
 // If the hexadecimal string is not valid, it returns an error.
 pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
-    match hex::decode(hex_string) {  // Decode the hexadecimal string into entropy (vector of bytes).
+    match hex::decode(hex_string) {
+        // Decode the hexadecimal string into entropy (vector of bytes).
         Ok(vec) => {
-            println!("{}", "\n=== Original Entropy from Binary ===".green());  // print the message
+            println!("{}", "\n=== Original Entropy from Binary ===".green()); // print the message
             Ok(vec)
-        },
-        Err(e) => Err(e)
+        }
+        Err(e) => Err(e),
     }
 }
-

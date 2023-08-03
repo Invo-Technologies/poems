@@ -128,12 +128,12 @@ impl Keys {
 
     pub fn get_p(&self) -> Option<&String> {
         match &self.p {
-            Some(pk) => {
-                println!("\nSuccessfully retrieved public key from keys.rs bro: \n{}", pk);
-                Some(pk)
+            Some(p) => {
+                println!("\n got public key from keys.rs --133 bro: \n{}", p);
+                Some(p)
             }
             None => {
-                println!("\nNo public key found");
+                println!("\nNo public key found -- Keys.rs");
                 None
             }
         }
@@ -142,11 +142,11 @@ impl Keys {
     pub fn get_pk(&self) -> Option<&String> {
         match &self.pk {
             Some(pk) => {
-                println!("\nSuccessfully retrieved private key from keys.rs dude: \n{}", pk);
+                println!("\n GOT private key from keys.rs --149 dude: \n{}", pk);
                 Some(pk)
             }
             None => {
-                println!("\nNo private key found\n");
+                println!("\nNo private key found -- Keys.rs \n");
                 None
             }
         }
