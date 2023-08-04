@@ -35,6 +35,7 @@ pub fn generate_entropy(keys: &mut Keys) -> Vec<u8> {
 pub fn generate_mnemonic_and_seed(keys: &mut Keys, entropy: &Vec<u8>) -> Result<(), bip39::Error> {
     match Mnemonic::from_entropy(entropy) {
         Ok(mnemonic) => {
+            println!("{:?}", entropy);
             println!("{}", "\n=== Mnemonic Phrase ===".purple());
             println!("{}", mnemonic);
 
@@ -71,13 +72,16 @@ pub fn hex_to_bin(hex_string: &str) -> Result<String, hex::FromHexError> {
 
 // This function converts a hexadecimal string back to entropy (vector of bytes).
 // If the hexadecimal string is not valid, it returns an error.
+// pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
+//     match hex::decode(hex_string) {
+//         // Decode the hexadecimal string into entropy (vector of bytes).
+//         Ok(vec) => {
+//             println!("{}", "\n=== Original Binary from entropy ===".green()); // print the message
+//             Ok(vec)
+//         }
+//         Err(e) => Err(e),
+//     }
+// }
 pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
-    match hex::decode(hex_string) {
-        // Decode the hexadecimal string into entropy (vector of bytes).
-        Ok(vec) => {
-            println!("{}", "\n=== Original Entropy from Binary ===".green()); // print the message
-            Ok(vec)
-        }
-        Err(e) => Err(e),
-    }
+    hex::decode(hex_string) // Decode the hexadecimal string into entropy (vector of bytes).
 }

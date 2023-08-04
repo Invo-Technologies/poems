@@ -117,14 +117,18 @@ impl Keys {
     }
 
     pub fn get_e(&self) -> Option<&String> {
-        match self.e.as_ref() {
-            Some(e) => {
-                println!("{}", "\nThis test works the entropy +++ \n".blue());
-                Some(e)
-            }
-            None => None,
-        }
+        self.e.as_ref()
     }
+
+    // pub fn get_e(&self) -> Option<&String> {
+    //     match self.e.as_ref() {
+    //         Some(e) => {
+    //             println!("{}", "\nThis test works the entropy +++ \n".blue());
+    //             Some(e)
+    //         }
+    //         None => None,
+    //     }
+    // }
 
     pub fn get_p(&self) -> Option<&String> {
         match &self.p {
