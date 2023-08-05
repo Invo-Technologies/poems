@@ -28,7 +28,6 @@ use data_encoding::BASE64_NOPAD;
 
 use block_modes::{BlockMode, Cbc};
 
-
 extern crate rand;
 extern crate rsa;
 
@@ -280,144 +279,91 @@ fn main() {
         ),
         None => println!("No entropy found in keys."),
     }
-    println!("{}", ".............................................................................................".bright_red());
-    println!("setting aes_generated_entropy!");
-    println!("{}", ".............................................................................................".bright_red());
+    let input = read_nonempty_string_from_user("Enter text to be encrypted: ");
+    let input_bytes = input.trim().as_bytes();
 
-    println!("{}", ".............................................................................................".bright_green());
-    let aes_generated_entropy = keys.get_e().map(|s| s.to_string()).unwrap_or_default();
-    println!("{}", ".............................................................................................".bright_green());
-    println!("aes_generated_entropy was set !");
-    let new_aes_generated_entropy = aes_generated_entropy.replace("\"", "");
+    let secret = read_nonempty_string_from_user_default("\nEnter secret: ", &new_pk_key);
+    println!("--286 this is what you just used as the secret. It should have been the full private key: \n{}\n", &secret);
+    let secret_bytes = secret.trim().as_bytes();
+    println!("--288 this is the secret key (private key) trimmed as bytes \n{}\n", &secret); // check for consitency
 
-    println!("{}", ".............................................................................................".bright_red());
-    println!("setting aes_private_key!");
-    println!("{}", ".............................................................................................".bright_red());
-
-    println!("{}", ".............................................................................................".bright_blue());
-    let aes_private_key = keys.get_pk();
-    println!("{}", ".............................................................................................".bright_blue());
-
-    println!("{}", ".............................................................................................".bright_black());
-    println!("aes_private_key was set !");
-
-
-    let new_aes_private_key = aes_private_key.unwrap().replace("\"", "");
-    println!("{}", ".............................................................................................".on_bright_purple());
-    // Convert the entropy and private key to bytes
-    println!("308-- this is the entropy before shifting to bytes (e) : \n{}\n", &new_aes_generated_entropy);
-    let entropy_bytes = new_aes_generated_entropy.trim().as_bytes();
-    println!("310-- this is the entrop in the form of bytes : \n{:?}\n", &entropy_bytes);
-    // 311--322 -- [97, 55, 100, 48, 49, 52, 100, 51, 99, 97, 57, 101, 52, 102, 56, 98, 53, 52, 49, 48, 52, 101, 98, 99, 55, 52, 54, 50, 51, 56, 49, 49, 49, 101, 101, 50, 55, 102, 53, 98, 53, 53, 53, 99, 99, 52, 49, 51, 57, 97, 50, 55, 52, 52, 51, 56, 54, 51, 56, 97, 99, 101, 53, 98]
-    println!("312-- this is the private key before setting to bytes: \n{}\n", &new_aes_private_key );
-    let private_key_bytes = new_aes_private_key.trim().as_bytes();
-    println!("314--this is the private key after setting to bytes: \n{:?}\n", &private_key_bytes );
-    println!("{}", ".............................................................................................".on_bright_purple());
-    // Generate a hash from the entropy
+    // Generate a hash from the password
     let mut hasher = Sha256::new();
-    hasher.update(entropy_bytes);
+    hasher.update(secret_bytes);
     let hash = hasher.finalize();
-    println!("{}", ".............................................................................................".on_bright_purple());
-    println!("321--this is the byte version of the entropy in it's hash form : \n{:?}\n", &hash);
-    // 311--322 -- [215, 66, 228, 51, 94, 118, 7, 181, 194, 35, 218, 138, 29, 46, 94, 215, 9, 204, 19, 83, 7, 168, 66, 53, 205, 139, 234, 221, 42, 193, 183, 174]
-    println!("{}", ".............................................................................................".on_bright_purple());
+
     // Derive a 256-bit key from the hash
     let hkdf = Hkdf::<Sha256>::new(None, &hash);
     let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-    println!("327--this is the key before expansion : \n{:?}\n", &key);
-    // [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     hkdf.expand(&[], &mut key).expect("Failed to generate key");
-    println!("329--this is the key after expansion : \n{:?}\n", &key);
-    //[49, 106, 61, 61, 151, 149, 245, 121, 37, 48, 202, 219, 234, 43, 90, 17, 115, 236, 141, 53, 191, 10, 36, 251, 213, 118, 56, 62, 222, 240, 191, 54]
-    println!("330--this is the private in bytes: \n{:?}\n", &private_key_bytes);
-    //some other array  [...]
-    let ciphertext = invo_aes_encrypt(private_key_bytes, &key);
-    println!("332--this is the private in bytes in ciphertext: \n{:?}\n", &ciphertext);
-    //106, 54, 9, 164, 55, 80, 110, 35, 183, 254, 207, 150, 210, 5, 156, 28, 149, 27,
+
+    let ciphertext = invo_aes_encrypt(input_bytes, &key);
     let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-    println!("334--this is the that ciphers private byte key in it's encoded base64 L \n{:?}\n", &ciphertext_base64);
-    //"0KCcG6A/udtqMj+6w5FsrMEA4DUjmFta...
-    println!("{}", ".............................................................................................".on_bright_purple());
+    print!("{}", "\nCiphertext: ".yellow());
+    println!("{}", ciphertext_base64);
 
-    println!("{}", ".............................................................................................".bright_black());
-    print!("{}", "\nCiphertext:\n".red().underline());
+    println!("{}", "\n *** Copy Cipher *** \n".yellow());
 
-    println!("{}", ".............................................................................................".bright_white());
-    println!("{}", ciphertext_base64.yellow());
+    let ciphertext_to_decrypt =
+        read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
 
-    println!("{}", ".............................................................................................".bright_white());
-    println!(
-        "{}",
-        "\n DIRECTION | *** :::: --->> Copy Cipher <<--- :::: *** \n"
-            .red()
-            .underline()
-    );
+    let mut attempt_count = 0;
 
-    println!("{}", ".............................................................................................".on_bright_cyan());
-    let ciphertext_to_decrypt = read_nonempty_string_from_user_default(
-        "\nPaste or Enter a ciphertext to be decrypted: ",
-        &ciphertext_base64,
-    ); //"0KCcG6A/udtqMj+6w5FsrMEA4DUjmFta...
-    println!("{}", ".............................................................................................".on_bright_cyan());
+    while attempt_count < 3 {
+        let secret_for_decryption = read_nonempty_string_from_user_default(&format!("\nEnter secret for decryption (Attempt {} of 3): ",attempt_count + 1), &new_pk_key,);
 
-    println!("{}", ".............................................................................................".on_bright_red());
-    println!(
-        " \nmain.rs -- the key you just inputted to decrypt line 302 -- the text:  \n{}\n",
-        &ciphertext_to_decrypt
-    ); //"0KCcG6A/udtqMj+6w5FsrMEA4DUjmFta...checks to see if it's still the same.
-    println!("{}", ".............................................................................................".on_bright_red());
-
-
-    println!("{}", ".............................................................................................".on_bright_green());
-    // Decode the base64 ciphertext
-    let ciphertext_decoded = BASE64_NOPAD
-        .decode(ciphertext_to_decrypt.trim().as_bytes())
-        .unwrap();
-    println!("Compare -- 329 and 330 ");
-    println!("Key: {:?}", &key);
-    println!("Ciphertext: {:?}", &ciphertext_decoded);
-
-    //all problems occur here. 
-    // Split the ciphertext into chunks and decrypt each chunk
-    let plaintext = decrypt_chunks(&ciphertext_decoded, &key);
-
-    match plaintext {
-        Ok(text_vec) => {
-            print!(
-                "{}",
-                "Congrats! You successfully Decrypted the AES Cipher: ".yellow()
-            );
-            println!(
-                "'{}', was the original input text",
-                String::from_utf8_lossy(&text_vec)
-            );
-            return;
-        }
-        Err(e) => {
-            eprintln!("An error occurred during decryption: {}", e);
-            println!("You have exhausted all attempts.");
-            return;
+        match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
+            Ok(text) => {
+                print!(
+                    "{}",
+                    "Congrats! You successfully Decrypted the AES Cipher: ".yellow()
+                );
+                println!("'{}', was the original input text", text);
+                return;
+            }
+            Err(e) => {
+                eprintln!("An error occurred during decryption: {}", e);
+                attempt_count += 1;
+                if attempt_count == 3 {
+                    println!("You have exhausted all attempts.");
+                    return;
+                } else {
+                    println!("You have {} attempts left.", 3 - attempt_count);
+                }
+            }
         }
     }
 }
 
+// fn decrypt_chunks(
+//     ciphertext_and_nonce: &[u8],
+//     key: &[u8],
+//     chunk_size: usize,
+// ) -> Result<Vec<u8>, CustomError> {
+//     let mut plaintext = Vec::new();
 
+//     // Hash the key to derive a 32-byte key.
+//     let mut hasher = Sha256::new();
+//     hasher.update(key);
+//     let hashed_key = hasher.finalize();
 
-fn decrypt_chunks(ciphertext_and_nonce: &[u8], key: &[u8]) -> Result<Vec<u8>, CustomError> {
-    let mut plaintext = Vec::new();
+//     let chunks = ciphertext_and_nonce.chunks(chunk_size);
+//     let mut chunk_iter = chunks.into_iter();
 
-    // Hash the key to derive a 32-byte key.
-    let mut hasher = Sha256::new();
-    hasher.update(key);
-    let hashed_key = hasher.finalize();
+//     while let Some(chunk) = chunk_iter.next() {
+//         let decrypted_chunk = if chunk.len() == chunk_size {
+//             invo_aes_decrypt(chunk, &hashed_key)?
+//         } else {
+//             // Handle the last chunk separately if it's smaller than chunk_size
+//             let mut last_chunk = vec![0; chunk_size];
+//             last_chunk[..chunk.len()].copy_from_slice(chunk);
+//             invo_aes_decrypt(&last_chunk, &hashed_key)?
+//         };
+//         plaintext.extend(decrypted_chunk);
+//     }
 
-    for chunk in ciphertext_and_nonce.chunks(44) {
-        let decrypted_chunk = invo_aes_decrypt(chunk, &hashed_key)?;
-        plaintext.extend(decrypted_chunk);
-    }
-
-    Ok(plaintext)
-}
+//     Ok(plaintext)
+// }
 
 // while attempt_count < 3 {
 //     let secret_for_decryption = read_nonempty_string_from_user(&format!(
@@ -505,29 +451,29 @@ while attempt_count < 3 {
 }
 */
 
-// pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
-//     // Generate a hash from the password
-//     let mut hasher = Sha256::new();
-//     hasher.update(secret);
-//     let hash = hasher.finalize();
+pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
+    // Generate a hash from the password
+    let mut hasher = Sha256::new();
+    hasher.update(secret);
+    let hash = hasher.finalize();
 
-//     // Derive a 256-bit key from the hash
-//     let hkdf = Hkdf::<Sha256>::new(None, &hash);
-//     let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-//     hkdf.expand(&[], &mut key)
-//         .map_err(|_| CustomError::HkdfError)?;
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
+    hkdf.expand(&[], &mut key)
+        .map_err(|_| CustomError::HkdfError)?;
 
-//     // Decode the base64 ciphertext
-//     let ciphertext_decoded = BASE64_NOPAD
-//         .decode(ciphertext_base64.as_bytes())
-//         .map_err(CustomError::Base64Error)?;
+    // Decode the base64 ciphertext
+    let ciphertext_decoded = BASE64_NOPAD
+        .decode(ciphertext_base64.as_bytes())
+        .map_err(CustomError::Base64Error)?;
 
-//     // Decrypt the text
-//     let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
+    // Decrypt the text
+    let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
 
-//     // Convert the decrypted bytes to a String
-//     Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
-// }
+    // Convert the decrypted bytes to a String
+    Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
+}
 
 #[derive(Debug)]
 pub enum CustomError {
