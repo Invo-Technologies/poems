@@ -102,25 +102,26 @@ impl Keys {
         }
     }
 
-   
-
     pub fn get_y(&self) -> Option<&String> {
         self.y.as_ref()
     }
 
-    pub fn get_e(&self) -> Option<&String> {
-        self.e.as_ref()
-    }
-
     // pub fn get_e(&self) -> Option<&String> {
-    //     match self.e.as_ref() {
-    //         Some(e) => {
-    //             println!("{}", "\n keys.rs  118 This test works the entropy +++ \n".blue(),e);
-    //             Some(e)
-    //         }
-    //         None => None,
-    //     }
+    //     self.e.as_ref()
     // }
+
+    pub fn get_e(&self) -> Option<&String> {
+        match &self.e {
+            Some(e) => {
+                println!("\n keys.rs  118 This test works the entropy +++ :\n {} ", e);
+                Some(e)
+            }
+            None => {
+                println!("\nNo entropy e found -- Keys.rs");
+                None
+            }
+        }
+    }
 
     pub fn get_p(&self) -> Option<&String> {
         match &self.p {
@@ -153,7 +154,10 @@ impl Keys {
                 println!("{}", "\nThis test works for derived seed.-. ".blue());
                 Some(d)
             }
-            None => None,
+            None => {
+                println!("\nkeys 155 -- No derived seed found key found -- Keys.rs \n");
+                None
+            }
         }
     }
 
