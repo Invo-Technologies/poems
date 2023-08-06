@@ -3,7 +3,7 @@ mod generation_procedure;
 mod stored_procedure;
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::Keys;
-use aes::Aes256;
+//use aes::Aes256;
 #[allow(unused_imports)]
 use base64::{
     alphabet,
@@ -16,7 +16,7 @@ use bip39::Mnemonic;
 use block_modes::{BlockMode, Cbc};
 #[allow(unused_imports)]
 use block_padding::Pkcs7;
-use cbc::{Decryptor, Encryptor};
+// use cbc::{Decryptor, Encryptor};
 use colored::*;
 use data_encoding::BASE64_NOPAD;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
@@ -37,8 +37,8 @@ extern crate rsa;
 //end result will be that the program will generate everything without awaiting for any input and still get the same successfull out's from main.
 // and then the only thing this program will ever do, is await for the S and X interpretation's and run the program to generate a matching result.
 
-type Aes256CbcEnc = Encryptor<Aes256>;
-type Aes256CbcDec = Decryptor<Aes256>;
+// type Aes256CbcEnc = Encryptor<Aes256>;
+// type Aes256CbcDec = Decryptor<Aes256>;
 
 fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
     let mut input = String::from(default);
@@ -371,7 +371,7 @@ fn main() {
         .expand(&[], &mut x_key)
         .expect("Failed to generate key");
 
-    let x_ciphertext = invo_aes_encrypt(x_input_bytes, &x_key);
+    let x_ciphertext = invo_aes_x_encrypt(x_input_bytes, &x_key);
     let x_ciphertext_base64 = BASE64_NOPAD.encode(&x_ciphertext);
     print!("{}", "\n X Key Ciphertext: ".yellow());
     println!("{}", &x_ciphertext_base64);
