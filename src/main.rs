@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 mod generation_procedure;
 mod stored_procedure;
-use crate::generation_procedure::rsa::generate_rsa_keys;
+use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::Keys;
 use aes::Aes256;
 #[allow(unused_imports)]
@@ -89,16 +89,6 @@ fn main() {
     // Generate entropy for mnemonic using BIP39 standard and set in keys.
     let entropy = generate_entropy(&mut keys);
     let _zgen = generate_and_set_z_keys(&mut keys);
-
-    match keys.get_z1() {
-        // this is printing twice to prove that match and keys.rs is working properly
-        Some(z1) => println!("\nmain 95 -- match statement Z1: {}\n", z1.red()),
-        None => println!("\nNo Z1 value found.\n"),
-    }
-
-    let ziffie_uno = keys.get_z1(); //this prints because of print statement
-    let new_ziffie_uno = ziffie_uno.unwrap().replace("\"", "").to_string();
-    println!("\n--main 99 new_ziffie_uno bro: {}\n", &new_ziffie_uno);
 
     // match keys.get_z2() {
     //     Some(z2) => println!("\nZ2: {}\n", z2.red()),
@@ -288,12 +278,10 @@ fn main() {
         hmac_binary_2.yellow()
     );
 
-    println!("\nHMAC in hex: --242 main : \n{}", hmac_hex_2.yellow());
-
-    keys.set_y(&hmac_hex_2);
+    println!("\nHMAC in hex: --242 main : \n{}", &hmac_hex_2.yellow());
 
     //set Y keys.rs, and then use during decryption.
-
+    keys.set_y(&hmac_hex_2);
     match keys.get_y() {
         Some(y) => println!(
             "\nthis is the y thats stored in keys.rs : -- 255 main : \n{}",
@@ -307,24 +295,30 @@ fn main() {
         "\n============================================================ Start AES Program ====================================================\n".yellow()
     );
 
+    // let ziffie_uno = keys.get_z1(); // println!("\n--main 99 new_ziffie_uno bro: {}\n", &new_ziffie_uno);
+    // let new_ziffie_uno = ziffie_uno.unwrap().replace("\"", "").to_string(); // will be used as X input
+    //--------------------------------------------------------------------------------------------------------------------------------
     //the problem here is that the private key is too large to be decrypted back. test the sha256 to get the original input again once I use the private key as a default secret.
     match keys.get_e() {
         Some(e) => println!(
-            "\n-- MATCH :: The entropy stored in stored_procedure/keys.rs is: for for (e) in S key input ::\n{}\n",
+            "\n-- 312 MATCH :: The entropy stored in stored_procedure/keys.rs is for (e) in S key input ::\n{}\n",
             e.red()
         ),
-        None => println!("No entropy found in keys."),
+        None => println!("No entropy found in keys.rs. -- main"),
     }
-    let input = read_nonempty_string_from_user("Enter text to be encrypted: ");
+    // This makes S key
+    let input = read_nonempty_string_from_user("Enter entropy (e) to be encrypted: ");
     let input_bytes = input.trim().as_bytes();
-
-    let secret = read_nonempty_string_from_user_default("\nEnter secret: ", &new_pk_key);
-    println!("--286 this is what you just used as the secret. It should have been the full private key: \n{}\n", &secret);
+    let secret = read_nonempty_string_from_user_default(
+        "\nPress [Enter] Private key as secret for S: ",
+        &new_pk_key,
+    );
+    println!("\n--314 this is what you just used as the secret. It should have been the full private key: \n{}\n", &secret);
     let secret_bytes = secret.trim().as_bytes();
-    println!(
-        "--288 this is the secret key (private key) trimmed as bytes \n{}\n",
-        &secret
-    ); // check for consitency
+    // println!(
+    //     "\n--317 this is the secret key (private key) trimmed as bytes \n{}\n",
+    //     &secret
+    // ); // check for consitency
 
     // Generate a hash from the password
     let mut hasher = Sha256::new();
@@ -338,25 +332,66 @@ fn main() {
 
     let ciphertext = invo_aes_encrypt(input_bytes, &key);
     let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-    print!("{}", "\nS Key Ciphertext: ".yellow());
+    print!("{}", "\n S Key Ciphertext: ".yellow());
     println!("{}", &ciphertext_base64);
     keys.set_s(ciphertext_base64);
-    print!("{}", "\nGet S Key : ".yellow());
+
+    //--------------------------------------------------------------------------------------------------------------------------------
+    match keys.get_z1() {
+        // this is printing twice to prove that match and keys.rs is working properly
+        Some(z1) => println!(
+            "\n-- MATCH :: the Ziffie stored in stored_procedure/keys.rs is for (Z1) in X key input::\n{}\n",
+            z1.red()
+        ),
+        None => println!("\nNo Z1 value found in keys.rs -- main.\n"),
+    }
+    //this makes X key
+    let x_input = read_nonempty_string_from_user("Enter The Z1 key to be encrypted: ");
+    let x_input_bytes = x_input.trim().as_bytes();
+    let x_secret = read_nonempty_string_from_user_default(
+        "\n Press [Enter] to use Y as secret for X:",
+        &hmac_hex_2,
+    );
+    println!("\n--356 this is what you just used as the secret. It should have been the full Private key: \n{}\n", &x_secret);
+    let x_secret_bytes = x_secret.trim().as_bytes();
+    // println!(
+    //     "\n--317 this is the secret key (private key) trimmed as bytes \n{}\n",
+    //     &x_secret
+    // ); // check for consitency
+
+    // :: turn this into a quick function that is performed in main and then quickly called.
+    let mut x_hasher = Sha256::new();
+    x_hasher.update(x_secret_bytes);
+    let x_hash = x_hasher.finalize();
+
+    // Derive a 256-bit key from the hash
+    let x_hkdf = Hkdf::<Sha256>::new(None, &x_hash);
+    let mut x_key = [0u8; 32]; // AES256 requires a 32-byte key
+    x_hkdf
+        .expand(&[], &mut x_key)
+        .expect("Failed to generate key");
+
+    let x_ciphertext = invo_aes_encrypt(x_input_bytes, &x_key);
+    let x_ciphertext_base64 = BASE64_NOPAD.encode(&x_ciphertext);
+    print!("{}", "\n X Key Ciphertext: ".yellow());
+    println!("{}", &x_ciphertext_base64);
+    keys.set_x1(x_ciphertext_base64);
+
     match keys.get_s() {
         Some(e) => println!(
             "\n-- MATCH :: The Secret Interpretation S stored in stored_procedure/keys.rs is::\n{}\n",
-            e.red()
+            e.on_bright_magenta()
         ),
         None => println!("No entropy found in keys."),
     }
-
     println!(
         "{}",
-        "\n *** Copy Cipher S Key to use Decryption *** \n".yellow()
-    );
+        "\n *** Copy Cipher S Key to use Decryption *** \n".magenta()
+    ); // this should be decided on either S or X key
 
-    let ciphertext_to_decrypt =
-        read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
+    //proof that decryption is possible for either S or X key !!!
+    let s_ciphertext_to_decrypt =
+        read_nonempty_string_from_user("\nPaste or [Enter] a S ciphertext to be decrypted: ");
 
     let mut attempt_count = 0;
 
@@ -369,11 +404,60 @@ fn main() {
             &new_pk_key,
         );
 
-        match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
+        match decrypt_text(s_ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
             Ok(text) => {
                 print!(
                     "{}",
-                    "Congrats! You successfully Decrypted the AES Cipher: ".yellow()
+                    "\nCongrats! You successfully Decrypted the AES Cipher (e): ".on_magenta()
+                );
+                println!("'{}', was the original input text", text);
+                break;
+            }
+            Err(e) => {
+                eprintln!("An error occurred during decryption: {}", e);
+                attempt_count += 1;
+                if attempt_count == 3 {
+                    println!("You have exhausted all attempts.");
+                    return;
+                } else {
+                    println!("You have {} attempts left.", 3 - attempt_count);
+                }
+            }
+        }
+        continue;
+    }
+
+    match keys.get_x1() {
+        Some(e) => println!(
+            "\n-- MATCH :: The Secret Interpretation X1 stored in stored_procedure/keys.rs is::\n{}\n",
+            e.on_bright_cyan()
+        ),
+        None => println!("No entropy found in keys."),
+    }
+    println!(
+        "{}",
+        "\n *** Copy Cipher X1 Key to use Decryption *** \n".cyan() // this should be decided on either S or X key
+    );
+
+    let x_ciphertext_to_decrypt =
+        read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
+
+    let mut attempt_count = 0;
+
+    while attempt_count < 3 {
+        let secret_for_decryption = read_nonempty_string_from_user_default(
+            &format!(
+                "\nEnter secret for decryption (Attempt {} of 3): ",
+                attempt_count + 1
+            ),
+            &hmac_hex_2,
+        );
+
+        match decrypt_text(x_ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
+            Ok(text) => {
+                print!(
+                    "{}",
+                    "Congrats! You successfully Decrypted the AES Cipher (Z1): ".on_cyan()
                 );
                 println!("'{}', was the original input text", text);
                 return;

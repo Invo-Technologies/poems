@@ -25,6 +25,11 @@ pub struct Keys {
     z3: Option<String>,
     z4: Option<String>,
     z5: Option<String>,
+    x1: Option<String>,
+    x2: Option<String>,
+    x3: Option<String>,
+    x4: Option<String>,
+    x5: Option<String>,
 }
 
 #[allow(dead_code)] // remove for testing purposes
@@ -36,24 +41,20 @@ impl Keys {
         }
     }
 
-    pub fn set_d(&mut self, value: &str) {
+    // ------------------------------------------Setter functions------------------------------------------------------
+    pub fn set_e(&mut self, value: &str) {
         //used in main
-        self.d = Some(value.to_string());
+        self.e = Some(value.to_string());
     }
 
-    // Setter functions
     pub fn set_m(&mut self, value: &str) {
         //used in main
         self.m = Some(value.to_string());
     }
 
-    pub fn set_y(&mut self, value: &str) {
-        self.y = Some(value.to_string());
-    }
-
-    pub fn set_e(&mut self, value: &str) {
+    pub fn set_d(&mut self, value: &str) {
         //used in main
-        self.e = Some(value.to_string());
+        self.d = Some(value.to_string());
     }
 
     pub fn set_p(&mut self, value: String) {
@@ -64,6 +65,10 @@ impl Keys {
     pub fn set_pk(&mut self, value: String) {
         //used in rsa.rs
         self.pk = Some(value);
+    }
+
+    pub fn set_y(&mut self, value: &str) {
+        self.y = Some(value.to_string());
     }
 
     pub fn set_s(&mut self, value: String) {
@@ -91,7 +96,45 @@ impl Keys {
         self.z5 = Some(value);
     }
 
-    // Getter functions
+    pub fn set_x1(&mut self, value: String) {
+        // should be used in aes.rs
+        self.x1 = Some(value);
+    }
+
+    pub fn set_x2(&mut self, value: String) {
+        // should be used in aes.rs
+        self.x2 = Some(value);
+    }
+
+    pub fn set_x3(&mut self, value: String) {
+        // should be used in aes.rs
+        self.x3 = Some(value);
+    }
+
+    pub fn set_x4(&mut self, value: String) {
+        // should be used in aes.rs
+        self.x4 = Some(value);
+    }
+
+    pub fn set_x5(&mut self, value: String) {
+        // should be used in aes.rs
+        self.x5 = Some(value);
+    }
+
+    // ------------------------------------------Getter functions------------------------------------------------------
+    pub fn get_e(&self) -> Option<&String> {
+        match &self.e {
+            Some(e) => {
+                println!("\n keys.rs  118 This test works the entropy +++ :\n {} ", e);
+                Some(e)
+            }
+            None => {
+                println!("\nNo entropy e found -- Keys.rs");
+                None
+            }
+        }
+    }
+
     pub fn get_m(&self) -> Option<&String> {
         match self.m.as_ref() {
             Some(m) => {
@@ -102,22 +145,14 @@ impl Keys {
         }
     }
 
-    pub fn get_y(&self) -> Option<&String> {
-        self.y.as_ref()
-    }
-
-    // pub fn get_e(&self) -> Option<&String> {
-    //     self.e.as_ref()
-    // }
-
-    pub fn get_e(&self) -> Option<&String> {
-        match &self.e {
-            Some(e) => {
-                println!("\n keys.rs  118 This test works the entropy +++ :\n {} ", e);
-                Some(e)
+    pub fn get_d(&self) -> Option<&String> {
+        match self.d.as_ref() {
+            Some(d) => {
+                println!("{}", "\nThis test works for derived seed.-. ".blue());
+                Some(d)
             }
             None => {
-                println!("\nNo entropy e found -- Keys.rs");
+                println!("\nkeys 155 -- No derived seed found key found -- Keys.rs \n");
                 None
             }
         }
@@ -148,17 +183,9 @@ impl Keys {
             }
         }
     }
-    pub fn get_d(&self) -> Option<&String> {
-        match self.d.as_ref() {
-            Some(d) => {
-                println!("{}", "\nThis test works for derived seed.-. ".blue());
-                Some(d)
-            }
-            None => {
-                println!("\nkeys 155 -- No derived seed found key found -- Keys.rs \n");
-                None
-            }
-        }
+
+    pub fn get_y(&self) -> Option<&String> {
+        self.y.as_ref()
     }
 
     pub fn get_s(&self) -> Option<&String> {
@@ -229,4 +256,27 @@ impl Keys {
             }
         }
     }
+
+    pub fn get_x1(&self) -> Option<&String> {
+        self.x1.as_ref()
+    }
+
+    pub fn get_x2(&self) -> Option<&String> {
+        self.x2.as_ref()
+    }
+
+    pub fn get_x3(&self) -> Option<&String> {
+        self.x3.as_ref()
+    }
+
+    pub fn get_x4(&self) -> Option<&String> {
+        self.x4.as_ref()
+    }
+
+    pub fn get_x5(&self) -> Option<&String> {
+        self.x5.as_ref()
+    }
 }
+// pub fn get_e(&self) -> Option<&String> {
+//     self.e.as_ref()
+// }

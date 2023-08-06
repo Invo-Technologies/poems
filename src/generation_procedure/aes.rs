@@ -95,4 +95,26 @@ pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Result<Vec<u
     Ok(buffer)
 }
 
+pub fn invo_aes_x_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
+    // Hash the key to derive a 32-byte key.
+    let mut hasher = Sha256::new();
+    hasher.update(key);
+    let hashed_key = hasher.finalize();
+    let cipher = Aes256Gcm::new(GenericArray::from_slice(&hashed_key));
+
+    // Generate a random nonce
+    let mut rng = rand::thread_rng();
+    let nonce: [u8; 12] = rng.gen();
+
+    let mut buffer = message.to_vec();
+    cipher
+        .encrypt_in_place(&Nonce::from_slice(&nonce), &[], &mut buffer)
+        .unwrap();
+
+    // Append the nonce to the end of the ciphertext
+    buffer.extend_from_slice(&nonce);
+
+    buffer
+}
+
 //turn into the base64
