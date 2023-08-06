@@ -16,7 +16,7 @@ pub fn generate_hmac(secret: &[u8], data: &[u8]) -> (String, String) {
 
     (binary, hex)
 }
-
+/*
 // pub fn generate_hmac_from_keys() -> Result<(), &'static str> {
 //     let kceys = keys::KEYS.lock().unwrap();
 //     let d = keys.get_d();
@@ -38,3 +38,4 @@ pub fn generate_hmac(secret: &[u8], data: &[u8]) -> (String, String) {
 //     keys.set_y(&hmac_result.1);
 //     Ok(())
 // }
+*/

@@ -1,37 +1,42 @@
+#[allow(unused_imports)]
 mod generation_procedure;
 mod stored_procedure;
 use crate::generation_procedure::rsa::generate_rsa_keys;
-#[allow(unused_imports)]
 use crate::stored_procedure::keys::Keys;
+use aes::Aes256;
+#[allow(unused_imports)]
 use base64::{
     alphabet,
     engine::{self, general_purpose},
     Engine as _,
 };
+#[allow(unused_imports)]
 use bip39::Mnemonic;
+#[allow(unused_imports)]
+use block_modes::{BlockMode, Cbc};
+#[allow(unused_imports)]
+use block_padding::Pkcs7;
+use cbc::{Decryptor, Encryptor};
 use colored::*;
+use data_encoding::BASE64_NOPAD;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
 use generation_procedure::bip39::{
-    generate_entropy, generate_mnemonic_and_seed, hex_to_bin, hex_to_entropy,
+    generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed, hex_to_bin,
+    hex_to_entropy,
 };
 use generation_procedure::sha256;
 use hex;
 use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
+#[allow(unused_imports)]
 use std::fs;
 use std::io::{self, Write};
-
-use aes::Aes256;
-use block_padding::Pkcs7;
-use cbc::{Decryptor, Encryptor};
-use data_encoding::BASE64_NOPAD;
-
-use block_modes::{BlockMode, Cbc};
-
 extern crate rand;
 extern crate rsa;
 
-// create an alias for convenience
+//end result will be that the program will generate everything without awaiting for any input and still get the same successfull out's from main.
+// and then the only thing this program will ever do, is await for the S and X interpretation's and run the program to generate a matching result.
+
 type Aes256CbcEnc = Encryptor<Aes256>;
 type Aes256CbcDec = Decryptor<Aes256>;
 
@@ -83,6 +88,37 @@ fn main() {
 
     // Generate entropy for mnemonic using BIP39 standard and set in keys.
     let entropy = generate_entropy(&mut keys);
+    let _zgen = generate_and_set_z_keys(&mut keys);
+
+    match keys.get_z1() {
+        // this is printing twice to prove that match and keys.rs is working properly
+        Some(z1) => println!("\nmain 95 -- match statement Z1: {}\n", z1.red()),
+        None => println!("\nNo Z1 value found.\n"),
+    }
+
+    let ziffie_uno = keys.get_z1(); //this prints because of print statement
+    let new_ziffie_uno = ziffie_uno.unwrap().replace("\"", "").to_string();
+    println!("\n--main 99 new_ziffie_uno bro: {}\n", &new_ziffie_uno);
+
+    // match keys.get_z2() {
+    //     Some(z2) => println!("\nZ2: {}\n", z2.red()),
+    //     None => println!("\nNo Z2 value found.\n"),
+    // }
+
+    // match keys.get_z3() {
+    //     Some(z3) => println!("\nZ3: {}\n", z3.red()),
+    //     None => println!("N\no Z3 value found."),
+    // }
+
+    // match keys.get_z4() {
+    //     Some(z4) => println!("\nZ4: {}\n", z4.red()),
+    //     None => println!("\nNo Z4 value found.\n"),
+    // }
+
+    // match keys.get_z5() {
+    //     Some(z5) => println!("\nZ5: {}\n", z5.red()),
+    //     None => println!("\nNo Z5 value found.\n"),
+    // }
 
     print!("hello bro\n");
 
@@ -285,7 +321,10 @@ fn main() {
     let secret = read_nonempty_string_from_user_default("\nEnter secret: ", &new_pk_key);
     println!("--286 this is what you just used as the secret. It should have been the full private key: \n{}\n", &secret);
     let secret_bytes = secret.trim().as_bytes();
-    println!("--288 this is the secret key (private key) trimmed as bytes \n{}\n", &secret); // check for consitency
+    println!(
+        "--288 this is the secret key (private key) trimmed as bytes \n{}\n",
+        &secret
+    ); // check for consitency
 
     // Generate a hash from the password
     let mut hasher = Sha256::new();
@@ -299,10 +338,22 @@ fn main() {
 
     let ciphertext = invo_aes_encrypt(input_bytes, &key);
     let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-    print!("{}", "\nCiphertext: ".yellow());
-    println!("{}", ciphertext_base64);
+    print!("{}", "\nS Key Ciphertext: ".yellow());
+    println!("{}", &ciphertext_base64);
+    keys.set_s(ciphertext_base64);
+    print!("{}", "\nGet S Key : ".yellow());
+    match keys.get_s() {
+        Some(e) => println!(
+            "\n-- MATCH :: The Secret Interpretation S stored in stored_procedure/keys.rs is::\n{}\n",
+            e.red()
+        ),
+        None => println!("No entropy found in keys."),
+    }
 
-    println!("{}", "\n *** Copy Cipher *** \n".yellow());
+    println!(
+        "{}",
+        "\n *** Copy Cipher S Key to use Decryption *** \n".yellow()
+    );
 
     let ciphertext_to_decrypt =
         read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
@@ -310,7 +361,13 @@ fn main() {
     let mut attempt_count = 0;
 
     while attempt_count < 3 {
-        let secret_for_decryption = read_nonempty_string_from_user_default(&format!("\nEnter secret for decryption (Attempt {} of 3): ",attempt_count + 1), &new_pk_key,);
+        let secret_for_decryption = read_nonempty_string_from_user_default(
+            &format!(
+                "\nEnter secret for decryption (Attempt {} of 3): ",
+                attempt_count + 1
+            ),
+            &new_pk_key,
+        );
 
         match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
             Ok(text) => {
@@ -333,8 +390,11 @@ fn main() {
             }
         }
     }
+    // at this point in the program we have successfully encrypted the key's required for storage
+    // we have e, m, d <> p, pk  = Y1, S,
+    //
 }
-
+/*
 // fn decrypt_chunks(
 //     ciphertext_and_nonce: &[u8],
 //     key: &[u8],
@@ -393,7 +453,7 @@ fn main() {
 //     }
 // }
 
-/*
+
 let input = read_nonempty_string_from_user("Enter text to be encrypted: ");
 let input_bytes = input.trim().as_bytes();
 

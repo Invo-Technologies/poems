@@ -13,13 +13,13 @@ lazy_static! {
 #[derive(Serialize, Deserialize, Default)]
 
 pub struct Keys {
-    m: Option<String>,
-    y: Option<String>, // will use derived seed as input, and pk as secret
-    e: Option<String>, //generated entropy -- will be used to get derived seed later.
-    d: Option<String>, //derived seed, will be used once e is used.
-    p: Option<String>,
-    pk: Option<String>,
-    s: Option<String>,
+    e: Option<String>, // generated entropy -> will be used to get derived seed later. Can manke mnemonic! <---------------------------------| *
+    m: Option<String>, // bip39 -> mnemonic phrase from entropy based on binary encoding of e                                                |
+    d: Option<String>, // bip39 -->derived seed from mnemonic , will be used once e is used                                                  |
+    p: Option<String>, // rsa -> public key                                                                                                  |
+    pk: Option<String>, // rsa -> private key                                                                                                 |
+    y: Option<String>, // sha256 -> will use derived seed  (d) as input, and pk as secret using                                              |
+    s: Option<String>, // aes_gmc -> interpretation cipher. Pk is the secret to return back to entropy (e) <---------------------------------| *
     z1: Option<String>,
     z2: Option<String>,
     z3: Option<String>,
@@ -27,7 +27,7 @@ pub struct Keys {
     z5: Option<String>,
 }
 
-#[allow(dead_code)] //remove for testing purposes
+#[allow(dead_code)] // remove for testing purposes
 impl Keys {
     // Create a new Keys object with all fields None
     pub fn new() -> Self {
@@ -166,22 +166,67 @@ impl Keys {
     }
 
     pub fn get_z1(&self) -> Option<&String> {
-        self.z1.as_ref()
+        match self.z1.as_ref() {
+            Some(z1) => {
+                println!("\nkeys.rs Value of z1: {}\n", z1.bright_black());
+                Some(z1)
+            }
+            None => {
+                println!("z1 has not been set.");
+                None
+            }
+        }
     }
 
     pub fn get_z2(&self) -> Option<&String> {
-        self.z2.as_ref()
+        match self.z2.as_ref() {
+            Some(z2) => {
+                println!("\nkeys.rs Value of z2: {}\n", z2.bright_black());
+                Some(z2)
+            }
+            None => {
+                println!("z2 has not been set.");
+                None
+            }
+        }
     }
 
     pub fn get_z3(&self) -> Option<&String> {
-        self.z3.as_ref()
+        match self.z3.as_ref() {
+            Some(z3) => {
+                println!("\nkeys.rs Value of z3: {}\n", z3.bright_black());
+                Some(z3)
+            }
+            None => {
+                println!("z3 has not been set.");
+                None
+            }
+        }
     }
 
     pub fn get_z4(&self) -> Option<&String> {
-        self.z4.as_ref()
+        match self.z4.as_ref() {
+            Some(z4) => {
+                println!("\nkeys.rs Value of z4: {}\n", z4.bright_black());
+                Some(z4)
+            }
+            None => {
+                println!("z4 has not been set.");
+                None
+            }
+        }
     }
 
     pub fn get_z5(&self) -> Option<&String> {
-        self.z5.as_ref()
+        match self.z5.as_ref() {
+            Some(z5) => {
+                println!("\nkeys.rs Value of z5: {}\n", z5.bright_black());
+                Some(z5)
+            }
+            None => {
+                println!("z5 has not been set.");
+                None
+            }
+        }
     }
 }
