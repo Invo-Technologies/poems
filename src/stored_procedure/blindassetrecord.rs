@@ -24,7 +24,7 @@ impl BlindAssetRecord {
     }
 
     pub fn set_viewing_key(&mut self, viewing_key: String) {
-        self.viewing_key = Some(viewing_key);
+        self.viewing_key = Some(viewing_key); // custom viewkey key 
     }
 
     // This function allows us to associate a "z" identifier with a function name.
@@ -32,6 +32,12 @@ impl BlindAssetRecord {
     pub fn set_function_id(&mut self, id: String, function_name: String) {
         if let Some(ids) = &mut self.function_ids {
             ids.insert(id, function_name);
+        }
+    }
+    pub fn get_function_name(&self, id: &str) -> Option<&String> {
+        match &self.function_ids {
+            Some(ids) => ids.get(id),
+            None => None,
         }
     }
 }

@@ -91,7 +91,7 @@ pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
 // set 256 byte length keys, similar to how aleo will use bhp to build/set these keys.
 pub fn generate_and_set_z_keys(keys: &mut Keys) {
     let mut rng = rand::thread_rng(); // Thread-local random number generator.
-
+    
     // Generate 256 random bytes 5 times and set z keys.
     for i in 0..5 {
         let mut entropy = vec![]; // Vector to hold the entropy.
