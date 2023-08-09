@@ -3,6 +3,7 @@ mod generation_procedure;
 mod stored_procedure;
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::Keys;
+use crate::stored_procedure::record::Record;
 //use aes::Aes256;
 #[allow(unused_imports)]
 use base64::{
@@ -17,6 +18,7 @@ use block_modes::{BlockMode, Cbc};
 #[allow(unused_imports)]
 use block_padding::Pkcs7;
 // use cbc::{Decryptor, Encryptor};
+use async_std::task;
 use colored::*;
 use data_encoding::BASE64_NOPAD;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
@@ -73,6 +75,16 @@ fn read_nonempty_string_from_user(prompt: &str) -> String {
         );
     }
 }
+fn update_record_and_pause(keys: &Keys) {
+    let record_instance = Record::new(keys.clone());
+    record_instance.update_json();
+    println!("Record updated in record.json");
+    task::block_on(short_delay());
+}
+
+async fn short_delay() {
+    task::sleep(std::time::Duration::from_secs(3)).await;
+}
 
 #[warn(non_snake_case)]
 fn main() {
@@ -83,34 +95,23 @@ fn main() {
     );
     println!("\nTest program using this link: https://learnmeabitcoin.com/technical/mnemonic\n");
 
-    // Initialize the Keys struct
+    // Initialize the Keys struct and the Json Artifact that will be updated.
     let mut keys = Keys::new();
+    Record::init_json();
+    task::block_on(short_delay());
+    println!("Create Empty record.json initialized.");
 
-    // Generate entropy for mnemonic using BIP39 standard and set in keys.
+    // Generate entropy for mnemonic using BIP39 standard and set in keys.rs.
     let entropy = generate_entropy(&mut keys);
+
+    // Create a new Record instance with the updated keys
+    update_record_and_pause(&keys);
+
+    //generates the z keys and sets them in key.rs
     let _zgen = generate_and_set_z_keys(&mut keys);
 
-    // match keys.get_z2() {
-    //     Some(z2) => println!("\nZ2: {}\n", z2.red()),
-    //     None => println!("\nNo Z2 value found.\n"),
-    // }
-
-    // match keys.get_z3() {
-    //     Some(z3) => println!("\nZ3: {}\n", z3.red()),
-    //     None => println!("N\no Z3 value found."),
-    // }
-
-    // match keys.get_z4() {
-    //     Some(z4) => println!("\nZ4: {}\n", z4.red()),
-    //     None => println!("\nNo Z4 value found.\n"),
-    // }
-
-    // match keys.get_z5() {
-    //     Some(z5) => println!("\nZ5: {}\n", z5.red()),
-    //     None => println!("\nNo Z5 value found.\n"),
-    // }
-
-    print!("hello bro\n");
+    // Create a new Record instance with the newly updated keys
+    update_record_and_pause(&keys);
 
     // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
     match generate_mnemonic_and_seed(&mut keys, &entropy) {
@@ -186,6 +187,7 @@ fn main() {
         None => println!("No mnemonic found in keys."),
     }
     //------------------------------------------------------------------------------------------------
+    update_record_and_pause(&keys);
 
     println!(
         "{}",
@@ -218,6 +220,7 @@ fn main() {
         "{}",
         "\n========================================================== End of Key generation_procedure ===============================================\n".blue()
     );
+    update_record_and_pause(&keys);
 
     println!(
         "{}",
@@ -290,6 +293,8 @@ fn main() {
         None => println!("No y found in keys.rs"),
     }
 
+    update_record_and_pause(&keys);
+
     println!(
         "{}",
         "\n============================================================ Start AES Program ====================================================\n".yellow()
@@ -335,6 +340,7 @@ fn main() {
     print!("{}", "\n S Key Ciphertext: ".yellow());
     println!("{}", &ciphertext_base64);
     keys.set_s(ciphertext_base64);
+    update_record_and_pause(&keys);
 
     //--------------------------------------------------------------------------------------------------------------------------------
     match keys.get_z1() {
@@ -376,6 +382,7 @@ fn main() {
     print!("{}", "\n X Key Ciphertext: ".yellow());
     println!("{}", &x_ciphertext_base64);
     keys.set_x1(x_ciphertext_base64);
+    update_record_and_pause(&keys);
 
     match keys.get_s() {
         Some(e) => println!(
@@ -460,7 +467,8 @@ fn main() {
                     "Congrats! You successfully Decrypted the AES Cipher (Z1): ".on_cyan()
                 );
                 println!("'{}', was the original input text", text);
-                return;
+                break;
+                //return;
             }
             Err(e) => {
                 eprintln!("An error occurred during decryption: {}", e);
@@ -473,7 +481,18 @@ fn main() {
                 }
             }
         }
+
+        continue;
     }
+
+    // Create an instance of Record with the above structures
+    // let record_instance = Record::new(keys);
+
+    // // Call the function to write the Record instance to a JSON file
+    // record_instance.write_to_json();
+
+    // println!("Record written to record.json");
+
     // at this point in the program we have successfully encrypted the key's required for storage
     // we have e, m, d <> p, pk  = Y1, S,
     //
@@ -682,3 +701,25 @@ impl fmt::Display for AesError {
 }
 
 // aes decrypt the ciphertext string back to the original input value.
+
+/*
+// match keys.get_z2() {
+    //     Some(z2) => println!("\nZ2: {}\n", z2.red()),
+    //     None => println!("\nNo Z2 value found.\n"),
+    // }
+
+    // match keys.get_z3() {
+    //     Some(z3) => println!("\nZ3: {}\n", z3.red()),
+    //     None => println!("N\no Z3 value found."),
+    // }
+
+    // match keys.get_z4() {
+    //     Some(z4) => println!("\nZ4: {}\n", z4.red()),
+    //     None => println!("\nNo Z4 value found.\n"),
+    // }
+
+    // match keys.get_z5() {
+    //     Some(z5) => println!("\nZ5: {}\n", z5.red()),
+    //     None => println!("\nNo Z5 value found.\n"),
+    // }
+    */

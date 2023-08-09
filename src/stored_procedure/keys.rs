@@ -1,6 +1,7 @@
 // Struct to hold all the different types of keys and identifiers
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Mutex;
 // use std::sync::RwLock;
 // use once_cell::sync::Lazy;
@@ -10,8 +11,7 @@ lazy_static! {
     pub static ref KEYS: Mutex<Keys> = Mutex::new(Keys::new());
 }
 
-#[derive(Serialize, Deserialize, Default)]
-
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct Keys {
     e: Option<String>, // generated entropy -> will be used to get derived seed later. Can manke mnemonic! <---------------------------------| *
     m: Option<String>, // bip39 -> mnemonic phrase from entropy based on binary encoding of e                                                |
@@ -30,6 +30,27 @@ pub struct Keys {
     x3: Option<String>,
     x4: Option<String>,
     x5: Option<String>,
+}
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AccountQuery {
+    pub node_id: Option<String>,
+    pub game_id: Option<String>,
+    pub default_currency: Option<String>,
+    pub load_balance: Option<f64>,
+    pub pool_id: Option<String>,
+    pub asset_id: Option<String>,
+    pub account_id: Option<String>,
+    pub gamertag: Option<String>,
+    pub public_key: Option<String>,
+}
+#[derive(Serialize, Deserialize, Clone)]
+pub struct BlindAssetRecord {
+    // The viewing key is a large String that can be changed.
+    pub viewing_key: Option<String>,
+    // The function_ids field is a map that associates each "z" with a function name.
+    // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
+    // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
+    pub function_ids: Option<HashMap<String, String>>,
 }
 
 #[allow(dead_code)] // remove for testing purposes
@@ -280,3 +301,134 @@ impl Keys {
 // pub fn get_e(&self) -> Option<&String> {
 //     self.e.as_ref()
 // }
+
+#[allow(dead_code)] //remove for testing purposes
+impl AccountQuery {
+    pub fn new() -> Self {
+        Self {
+            node_id: None,          // Aleo
+            game_id: None,          // Aleo
+            default_currency: None, //chosen
+            load_balance: None,     //chosen --
+            pool_id: None,          //Aleo
+            asset_id: None,         // Aleo
+            account_id: None,       //Aleo
+            gamertag: None,         //chosen
+            public_key: None,       //generated
+        }
+    }
+
+    // Setters
+    pub fn set_node_id(&mut self, node_id: String) {
+        self.node_id = Some(node_id);
+    }
+
+    pub fn set_game_id(&mut self, game_id: String) {
+        self.game_id = Some(game_id);
+    }
+
+    pub fn set_default_currency(&mut self, default_currency: String) {
+        self.default_currency = Some(default_currency);
+    }
+
+    pub fn set_load_balance(&mut self, load_balance: f64) {
+        self.load_balance = Some(load_balance);
+    }
+
+    pub fn set_pool_id(&mut self, pool_id: String) {
+        self.pool_id = Some(pool_id);
+    }
+
+    pub fn set_asset_id(&mut self, asset_id: String) {
+        self.asset_id = Some(asset_id);
+    }
+
+    pub fn set_account_id(&mut self, account_id: String) {
+        self.account_id = Some(account_id);
+    }
+
+    pub fn set_gamertag(&mut self, gamertag: String) {
+        self.gamertag = Some(gamertag);
+    }
+
+    // pub fn set_public_key(&mut self, public_key: String) {
+    //     self.public_key = Some(public_key);
+    // }
+
+    // Getters
+    pub fn get_node_id(&self) -> Option<&String> {
+        self.node_id.as_ref()
+    }
+
+    pub fn get_game_id(&self) -> Option<&String> {
+        self.game_id.as_ref()
+    }
+
+    pub fn get_default_currency(&self) -> Option<&String> {
+        self.default_currency.as_ref()
+    }
+
+    pub fn get_load_balance(&self) -> Option<f64> {
+        self.load_balance
+    }
+
+    pub fn get_pool_id(&self) -> Option<&String> {
+        self.pool_id.as_ref()
+    }
+
+    pub fn get_asset_id(&self) -> Option<&String> {
+        self.asset_id.as_ref()
+    }
+
+    pub fn get_account_id(&self) -> Option<&String> {
+        self.account_id.as_ref()
+    }
+
+    pub fn get_gamertag(&self) -> Option<&String> {
+        self.gamertag.as_ref()
+    }
+
+    // pub fn get_public_key(&self) -> Option<&String> {
+    //     self.public_key.as_ref()
+    // }
+}
+
+#[allow(dead_code)] //remove for testing purposes
+impl BlindAssetRecord {
+    // The constructor function for BlindAssetRecord.
+    // It creates a new BlindAssetRecord with no viewing_key and an empty map of function_ids.
+    pub fn new() -> Self {
+        Self {
+            viewing_key: None,
+            function_ids: Some(HashMap::new()),
+        }
+    }
+
+    pub fn set_viewing_key(&mut self, viewing_key: String) {
+        self.viewing_key = Some(viewing_key); // custom viewkey key
+    }
+
+    // This function allows us to associate a "z" identifier with a function name.
+    // The function name is passed as a String.
+    pub fn set_function_id(&mut self, id: String, function_name: String) {
+        if let Some(ids) = &mut self.function_ids {
+            ids.insert(id, function_name);
+        }
+    }
+    pub fn get_function_name(&self, id: &str) -> Option<&String> {
+        match &self.function_ids {
+            Some(ids) => ids.get(id),
+            None => None,
+        }
+    }
+    // - viewing Key
+    // - function_ids
+    // -- z1 = purchase = "bind_id"
+    // -- z2 = recover = "bind_id"
+    // -- z3 = spend = "bind_id"
+    // -- z4 = transfer = "bind_id"
+    // -- z5 = send = "bind_id"
+
+    // - Aleo Program Secrets
+    // -- z = { seed, sha256, game_id, pool_id, [function_id: string]} // String is exit or transfer or swap
+}
