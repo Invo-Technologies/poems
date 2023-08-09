@@ -94,24 +94,23 @@ fn main() {
         "\n================================================================= BIP39 Program =================================================================\n".green()
     );
     println!("\nTest program using this link: https://learnmeabitcoin.com/technical/mnemonic\n");
-
+    task::block_on(short_delay());
     // Initialize the Keys struct and the Json Artifact that will be updated.
     let mut keys = Keys::new();
     Record::init_json();
     task::block_on(short_delay());
     println!("Create Empty record.json initialized.");
-
+    println!("\n");
+    update_record_and_pause(&keys);
+    println!("\n");
     // Generate entropy for mnemonic using BIP39 standard and set in keys.rs.
     let entropy = generate_entropy(&mut keys);
-
-    // Create a new Record instance with the updated keys
-    update_record_and_pause(&keys);
-
-    //generates the z keys and sets them in key.rs
+    
+    // Create a new Record instance with the updated Z keys
     let _zgen = generate_and_set_z_keys(&mut keys);
-
-    // Create a new Record instance with the newly updated keys
+    println!("\n");
     update_record_and_pause(&keys);
+    println!("\n");
 
     // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
     match generate_mnemonic_and_seed(&mut keys, &entropy) {
@@ -155,39 +154,9 @@ fn main() {
         }
     };
 
-    print!(
-        "\nMain.rs 103 -- printing e after getting it : {}",
-        entropy_hex
-    );
-
     println!("\n");
-
-    //------------------------------------------------------------------------------------------------
-
-    match keys.get_e() {
-        Some(e) => println!(
-            "\n149 main.rs -- The entropy stored in stored_procedure/keys.rs is: for for (e) in S key input :  {}\n",
-            e.red()
-        ),
-        None => println!("No entropy found in keys."),
-    }
-
-    match keys.get_m() {
-        Some(m) => println!(
-            "\nThe mnemonic stored in stored_procedure/keys.rs is: {}\n",
-            m.red()
-        ),
-        None => println!("No mnemonic found in keys."),
-    }
-    match keys.get_d() {
-        Some(m) => println!(
-            "\nThe derived seed stored in stored_procedure/keys.rs is: {}\n",
-            m.red()
-        ),
-        None => println!("No mnemonic found in keys."),
-    }
-    //------------------------------------------------------------------------------------------------
     update_record_and_pause(&keys);
+    println!("\n");
 
     println!(
         "{}",
@@ -206,30 +175,18 @@ fn main() {
     let new_p_key = p_key.unwrap().replace("\"", "");
     println!("\n--main 146 new_p_key key bro: {}", new_p_key);
 
-    match p_key {
-        Some(p) => println!("\nPublic Key: \n{}", p),
-        None => println!("\nNo public key found\n"),
-    }
-
-    match pk_key {
-        Some(pk) => println!("\nPrivate Key: \n{}", pk),
-        None => println!("\nNo private key found\n"),
-    }
-
     println!(
         "{}",
         "\n========================================================== End of Key generation_procedure ===============================================\n".blue()
     );
-    update_record_and_pause(&keys);
 
+    println!("\n");
+    update_record_and_pause(&keys);
+    println!("\n");
     println!(
         "{}",
         "\n========================================================== Start Sha256 Program ===========================================================\n".green()
     );
-    // match sha256::generate_hmac_from_keys() {
-    //     Ok(_) => println!("HMAC generated successfully"),
-    //     Err(e) => eprintln!("An error occurred: {}", e),
-    // }
 
     //the problem here is that the private key is too large to be decrypted back. test the sha256 to get the original input again once I use the private key as a default secret.
     println!(
@@ -241,18 +198,6 @@ fn main() {
     let new_derived_seed = derived_seed.unwrap().replace("\"", "");
     println!("\n--main 146 new public key bro: {}", new_derived_seed);
     //keey testing the program. Get the derived seed and the private keys to be combines for Y, and then prove it's true by using the input variables.
-    match derived_seed {
-        Some(m) => println!("\nDerived Seed : main 220-- \n{}", m),
-        None => println!("\nNo public key found\n"),
-    }
-
-    match keys.get_d() {
-        Some(d_m) => println!(
-            "\nThe derived seed stored in stored_procedure/keys.rs is: main --226:\n {}\n",
-            d_m.red()
-        ),
-        None => println!("No derived seed found in keys."),
-    }
 
     println!("\nderived seed (m) + private key (pk)= Y\n");
 
@@ -285,32 +230,19 @@ fn main() {
 
     //set Y keys.rs, and then use during decryption.
     keys.set_y(&hmac_hex_2);
-    match keys.get_y() {
-        Some(y) => println!(
-            "\nthis is the y thats stored in keys.rs : -- 255 main : \n{}",
-            y
-        ),
-        None => println!("No y found in keys.rs"),
-    }
 
+    println!("\n");
     update_record_and_pause(&keys);
+    println!("\n");
 
     println!(
         "{}",
         "\n============================================================ Start AES Program ====================================================\n".yellow()
     );
 
-    // let ziffie_uno = keys.get_z1(); // println!("\n--main 99 new_ziffie_uno bro: {}\n", &new_ziffie_uno);
-    // let new_ziffie_uno = ziffie_uno.unwrap().replace("\"", "").to_string(); // will be used as X input
     //--------------------------------------------------------------------------------------------------------------------------------
     //the problem here is that the private key is too large to be decrypted back. test the sha256 to get the original input again once I use the private key as a default secret.
-    match keys.get_e() {
-        Some(e) => println!(
-            "\n-- 312 MATCH :: The entropy stored in stored_procedure/keys.rs is for (e) in S key input ::\n{}\n",
-            e.red()
-        ),
-        None => println!("No entropy found in keys.rs. -- main"),
-    }
+
     // This makes S key
     let input = read_nonempty_string_from_user("Enter entropy (e) to be encrypted: ");
     let input_bytes = input.trim().as_bytes();
@@ -340,17 +272,13 @@ fn main() {
     print!("{}", "\n S Key Ciphertext: ".yellow());
     println!("{}", &ciphertext_base64);
     keys.set_s(ciphertext_base64);
+
+    println!("\n");
     update_record_and_pause(&keys);
+    println!("\n");
 
     //--------------------------------------------------------------------------------------------------------------------------------
-    match keys.get_z1() {
-        // this is printing twice to prove that match and keys.rs is working properly
-        Some(z1) => println!(
-            "\n-- MATCH :: the Ziffie stored in stored_procedure/keys.rs is for (Z1) in X key input::\n{}\n",
-            z1.red()
-        ),
-        None => println!("\nNo Z1 value found in keys.rs -- main.\n"),
-    }
+
     //this makes X key
     let x_input = read_nonempty_string_from_user("Enter The Z1 key to be encrypted: ");
     let x_input_bytes = x_input.trim().as_bytes();
@@ -360,10 +288,6 @@ fn main() {
     );
     println!("\n--356 this is what you just used as the secret. It should have been the full Private key: \n{}\n", &x_secret);
     let x_secret_bytes = x_secret.trim().as_bytes();
-    // println!(
-    //     "\n--317 this is the secret key (private key) trimmed as bytes \n{}\n",
-    //     &x_secret
-    // ); // check for consitency
 
     // :: turn this into a quick function that is performed in main and then quickly called.
     let mut x_hasher = Sha256::new();
@@ -382,15 +306,11 @@ fn main() {
     print!("{}", "\n X Key Ciphertext: ".yellow());
     println!("{}", &x_ciphertext_base64);
     keys.set_x1(x_ciphertext_base64);
-    update_record_and_pause(&keys);
 
-    match keys.get_s() {
-        Some(e) => println!(
-            "\n-- MATCH :: The Secret Interpretation S stored in stored_procedure/keys.rs is::\n{}\n",
-            e.on_bright_magenta()
-        ),
-        None => println!("No entropy found in keys."),
-    }
+    println!("\n");
+    update_record_and_pause(&keys);
+    println!("\n");
+
     println!(
         "{}",
         "\n *** Copy Cipher S Key to use Decryption *** \n".magenta()
@@ -434,13 +354,6 @@ fn main() {
         continue;
     }
 
-    match keys.get_x1() {
-        Some(e) => println!(
-            "\n-- MATCH :: The Secret Interpretation X1 stored in stored_procedure/keys.rs is::\n{}\n",
-            e.on_bright_cyan()
-        ),
-        None => println!("No entropy found in keys."),
-    }
     println!(
         "{}",
         "\n *** Copy Cipher X1 Key to use Decryption *** \n".cyan() // this should be decided on either S or X key
@@ -484,135 +397,7 @@ fn main() {
 
         continue;
     }
-
-    // Create an instance of Record with the above structures
-    // let record_instance = Record::new(keys);
-
-    // // Call the function to write the Record instance to a JSON file
-    // record_instance.write_to_json();
-
-    // println!("Record written to record.json");
-
-    // at this point in the program we have successfully encrypted the key's required for storage
-    // we have e, m, d <> p, pk  = Y1, S,
-    //
 }
-/*
-// fn decrypt_chunks(
-//     ciphertext_and_nonce: &[u8],
-//     key: &[u8],
-//     chunk_size: usize,
-// ) -> Result<Vec<u8>, CustomError> {
-//     let mut plaintext = Vec::new();
-
-//     // Hash the key to derive a 32-byte key.
-//     let mut hasher = Sha256::new();
-//     hasher.update(key);
-//     let hashed_key = hasher.finalize();
-
-//     let chunks = ciphertext_and_nonce.chunks(chunk_size);
-//     let mut chunk_iter = chunks.into_iter();
-
-//     while let Some(chunk) = chunk_iter.next() {
-//         let decrypted_chunk = if chunk.len() == chunk_size {
-//             invo_aes_decrypt(chunk, &hashed_key)?
-//         } else {
-//             // Handle the last chunk separately if it's smaller than chunk_size
-//             let mut last_chunk = vec![0; chunk_size];
-//             last_chunk[..chunk.len()].copy_from_slice(chunk);
-//             invo_aes_decrypt(&last_chunk, &hashed_key)?
-//         };
-//         plaintext.extend(decrypted_chunk);
-//     }
-
-//     Ok(plaintext)
-// }
-
-// while attempt_count < 3 {
-//     let secret_for_decryption = read_nonempty_string_from_user(&format!(
-//         "\nEnter secret for decryption (Attempt {} of 3): ",
-//         attempt_count + 1
-//     ));
-
-//     match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
-//         Ok(text) => {
-//             print!(
-//                 "{}",
-//                 "Congrats! You successfully Decrypted the AES Cipher: ".yellow()
-//             );
-//             println!("'{}', was the original input text", text);
-//             return;
-//         }
-//         Err(e) => {
-//             eprintln!("An error occurred during decryption: {}", e);
-//             attempt_count += 1;
-//             if attempt_count == 3 {
-//                 println!("You have exhausted all attempts.");
-//                 return;
-//             } else {
-//                 println!("You have {} attempts left.", 3 - attempt_count);
-//             }
-//         }
-//     }
-// }
-
-
-let input = read_nonempty_string_from_user("Enter text to be encrypted: ");
-let input_bytes = input.trim().as_bytes();
-
-let secret = read_nonempty_string_from_user("\nEnter secret: ");
-let secret_bytes = secret.trim().as_bytes();
-
-// Generate a hash from the password
-let mut hasher = Sha256::new();
-hasher.update(secret_bytes);
-let hash = hasher.finalize();
-
-// Derive a 256-bit key from the hash
-let hkdf = Hkdf::<Sha256>::new(None, &hash);
-let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-hkdf.expand(&[], &mut key).expect("Failed to generate key");
-
-let ciphertext = invo_aes_encrypt(input_bytes, &key);
-let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-print!("{}", "\nCiphertext: ".yellow());
-println!("{}", ciphertext_base64);
-
-println!("{}", "\n *** Copy Cipher *** \n".yellow());
-
-let ciphertext_to_decrypt =
-    read_nonempty_string_from_user("\nPaste or Enter a ciphertext to be decrypted: ");
-
-let mut attempt_count = 0;
-
-while attempt_count < 3 {
-    let secret_for_decryption = read_nonempty_string_from_user(&format!(
-        "\nEnter secret for decryption (Attempt {} of 3): ",
-        attempt_count + 1
-    ));
-
-    match decrypt_text(ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
-        Ok(text) => {
-            print!(
-                "{}",
-                "Congrats! You successfully Decrypted the AES Cipher: ".yellow()
-            );
-            println!("'{}', was the original input text", text);
-            return;
-        }
-        Err(e) => {
-            eprintln!("An error occurred during decryption: {}", e);
-            attempt_count += 1;
-            if attempt_count == 3 {
-                println!("You have exhausted all attempts.");
-                return;
-            } else {
-                println!("You have {} attempts left.", 3 - attempt_count);
-            }
-        }
-    }
-}
-*/
 
 pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
     // Generate a hash from the password
@@ -701,25 +486,3 @@ impl fmt::Display for AesError {
 }
 
 // aes decrypt the ciphertext string back to the original input value.
-
-/*
-// match keys.get_z2() {
-    //     Some(z2) => println!("\nZ2: {}\n", z2.red()),
-    //     None => println!("\nNo Z2 value found.\n"),
-    // }
-
-    // match keys.get_z3() {
-    //     Some(z3) => println!("\nZ3: {}\n", z3.red()),
-    //     None => println!("N\no Z3 value found."),
-    // }
-
-    // match keys.get_z4() {
-    //     Some(z4) => println!("\nZ4: {}\n", z4.red()),
-    //     None => println!("\nNo Z4 value found.\n"),
-    // }
-
-    // match keys.get_z5() {
-    //     Some(z5) => println!("\nZ5: {}\n", z5.red()),
-    //     None => println!("\nNo Z5 value found.\n"),
-    // }
-    */
