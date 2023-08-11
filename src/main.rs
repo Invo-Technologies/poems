@@ -35,6 +35,22 @@ use std::fs;
 use std::io::{self, Write};
 extern crate rand;
 extern crate rsa;
+use serde_json::Value;
+use std::fs::File;
+use std::io::prelude::*;
+
+fn read_json_value(filename: &str, key: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut file = File::open(filename)?;
+    let mut data = String::new();
+    file.read_to_string(&mut data)?;
+
+    let v: Value = serde_json::from_str(&data)?;
+    Ok(v["keys"][key]
+        .as_str()
+        .unwrap()
+        .replace("\"", "")
+        .to_string())
+}
 
 fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
     let mut input = String::from(default);
@@ -260,13 +276,13 @@ fn main() {
     let mut attempt_count = 0;
 
     while attempt_count < 3 {
-        let secret_for_decryption = read_nonempty_string_from_user_default(
-            &format!(
-                "\nEnter secret for decryption (Attempt {} of 3): ",
-                attempt_count + 1
-            ),
-            &new_pk_key,
-        );
+        let secret_for_decryption = match read_json_value("record.json", "pk") {
+            Ok(value) => value,
+            Err(_) => {
+                println!("Failed to read the secret from the JSON file.");
+                return;
+            }
+        };
 
         match decrypt_text(s_ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
             Ok(text) => {
@@ -302,13 +318,13 @@ fn main() {
     let mut attempt_count = 0;
 
     while attempt_count < 3 {
-        let secret_for_decryption = read_nonempty_string_from_user_default(
-            &format!(
-                "\nEnter secret for decryption (Attempt {} of 3): ",
-                attempt_count + 1
-            ),
-            &hmac_hex_2,
-        );
+        let secret_for_decryption = match read_json_value("record.json", "y") {
+            Ok(value) => value,
+            Err(_) => {
+                println!("Failed to read the secret from the JSON file.");
+                return;
+            }
+        };
 
         match decrypt_text(x_ciphertext_to_decrypt.trim(), secret_for_decryption.trim()) {
             Ok(text) => {
@@ -331,8 +347,6 @@ fn main() {
                 }
             }
         }
-
-        continue;
     }
 }
 
