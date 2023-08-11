@@ -8,6 +8,33 @@ use bip39::{Error, Mnemonic}; // Library to work with BIP39 mnemonic.
 use hex::*; // Library for hexadecimal related operations.
 use rand::Rng; // Library for random number generation.
 
+pub fn generate_and_set_z_keys(keys: &mut Keys) {
+    let mut rng = rand::thread_rng(); // Thread-local random number generator.
+
+    // Generate 256 random bytes 5 times and set z keys.
+    for i in 0..5 {
+        let mut entropy = vec![]; // Vector to hold the entropy.
+
+        // Generate 256 random bytes.
+        for _ in 0..256 {
+            let byte = rng.gen::<u8>(); // Generate a random byte.
+            entropy.push(byte); // Add the byte to the entropy vector.
+        }
+
+        let entropy_hex = hex::encode(&entropy);
+
+        // Set the z-keys based on generated entropy
+        match i {
+            0 => keys.set_z1(entropy_hex),
+            1 => keys.set_z2(entropy_hex),
+            2 => keys.set_z3(entropy_hex),
+            3 => keys.set_z4(entropy_hex),
+            4 => keys.set_z5(entropy_hex),
+            _ => unreachable!(), // this branch should never be reached
+        }
+    }
+}
+
 // This function generates a random entropy of 256 bits (or 32 bytes).
 // This entropy will be used to generate a BIP39 mnemonic.
 pub fn generate_entropy(keys: &mut Keys) -> Vec<u8> {
@@ -90,29 +117,4 @@ pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
 
 //testing to set z key's for decryption process August 5th, 2023
 // set 256 byte length keys, similar to how aleo will use bhp to build/set these keys.
-pub fn generate_and_set_z_keys(keys: &mut Keys) {
-    let mut rng = rand::thread_rng(); // Thread-local random number generator.
 
-    // Generate 256 random bytes 5 times and set z keys.
-    for i in 0..5 {
-        let mut entropy = vec![]; // Vector to hold the entropy.
-
-        // Generate 256 random bytes.
-        for _ in 0..256 {
-            let byte = rng.gen::<u8>(); // Generate a random byte.
-            entropy.push(byte); // Add the byte to the entropy vector.
-        }
-
-        let entropy_hex = hex::encode(&entropy);
-
-        // Set the z-keys based on generated entropy
-        match i {
-            0 => keys.set_z1(entropy_hex),
-            1 => keys.set_z2(entropy_hex),
-            2 => keys.set_z3(entropy_hex),
-            3 => keys.set_z4(entropy_hex),
-            4 => keys.set_z5(entropy_hex),
-            _ => unreachable!(), // this branch should never be reached
-        }
-    }
-}

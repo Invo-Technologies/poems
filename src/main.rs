@@ -52,22 +52,22 @@ fn read_json_value(filename: &str, key: &str) -> Result<String, Box<dyn std::err
         .to_string())
 }
 
-fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
-    let mut input = String::from(default);
-    loop {
-        print!("{} [{}]: ", prompt, default);
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut input).unwrap();
-        input = input.trim().to_string();
-        if !input.is_empty() {
-            return input;
-        }
-        println!(
-            "{}",
-            "You must enter a non-empty value. Please try again.".red()
-        );
-    }
-}
+// fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
+//     let mut input = String::from(default);
+//     loop {
+//         print!("{} [{}]: ", prompt, default);
+//         io::stdout().flush().unwrap();
+//         io::stdin().read_line(&mut input).unwrap();
+//         input = input.trim().to_string();
+//         if !input.is_empty() {
+//             return input;
+//         }
+//         println!(
+//             "{}",
+//             "You must enter a non-empty value. Please try again.".red()
+//         );
+//     }
+// }
 
 fn read_nonempty_string_from_user(prompt: &str) -> String {
     let mut input = String::new();
@@ -119,7 +119,7 @@ fn process_and_encrypt(
 }
 
 async fn short_delay() {
-    task::sleep(std::time::Duration::from_secs(1)).await;
+    task::sleep(std::time::Duration::from_secs(3)).await;
 }
 
 #[warn(non_snake_case)]
@@ -246,19 +246,22 @@ fn main() {
 
     //--------------------------------------------------------------------------------------------------------------------------------
 
-    let x_input = keys.get_z1();
-    let new_ziffie = x_input.unwrap().replace("\"", "");
-    let ziffie_bytes = new_ziffie.trim().as_bytes();
+    for i in 1..=5 {
+        process_and_set_x_for_z(&mut keys, &hmac_hex_2, i);
+    }
+    // let x_input = keys.get_z1();
+    // let new_ziffie = x_input.unwrap().replace("\"", "");
+    // let ziffie_bytes = new_ziffie.trim().as_bytes();
 
-    let x_secret_bytes = hmac_hex_2.trim().as_bytes();
+    // let x_secret_bytes = hmac_hex_2.trim().as_bytes();
 
-    let x_key_ciphertext_base64 = process_and_encrypt(
-        ziffie_bytes,
-        x_secret_bytes,
-        invo_aes_x_encrypt,
-        "X Key Ciphertext",
-    );
-    keys.set_x1(x_key_ciphertext_base64);
+    // let x_key_ciphertext_base64 = process_and_encrypt(
+    //     ziffie_bytes,
+    //     x_secret_bytes,
+    //     invo_aes_x_encrypt,
+    //     "X Key Ciphertext",
+    // );
+    // keys.set_x1(x_key_ciphertext_base64);
 
     println!("\n");
     update_record_and_pause(&keys);
@@ -350,7 +353,7 @@ fn main() {
     }
 }
 
-pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
+fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
     // Generate a hash from the password
     let mut hasher = Sha256::new();
     hasher.update(secret);
@@ -375,7 +378,7 @@ pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, Cus
 }
 
 #[derive(Debug)]
-pub enum CustomError {
+enum CustomError {
     HkdfError,
     Base64Error(data_encoding::DecodeError),
     AesError(aes_gcm::Error), // Here aes_gcm::Error is used directly
@@ -415,7 +418,7 @@ impl fmt::Display for CustomError {
 }
 
 #[derive(Debug)]
-pub enum AesError {
+enum AesError {
     Generic,
 }
 
@@ -437,3 +440,38 @@ impl fmt::Display for AesError {
 }
 
 // aes decrypt the ciphertext string back to the original input value.
+
+fn process_and_set_x_for_z(
+    keys: &mut Keys,
+    hmac_hex_2: &str,
+    z_key_number: u32,
+) {
+    let z_input = match z_key_number {
+        1 => keys.get_z1(),
+        2 => keys.get_z2(),
+        3 => keys.get_z3(),
+        4 => keys.get_z4(),
+        5 => keys.get_z5(),
+        _ => panic!("Invalid z_key_number provided!"),
+    };
+
+    let new_ziffie = z_input.unwrap().replace("\"", "");
+    let ziffie_bytes = new_ziffie.trim().as_bytes();
+    let x_secret_bytes = hmac_hex_2.trim().as_bytes();
+
+    let x_key_ciphertext_base64 = process_and_encrypt(
+        ziffie_bytes,
+        x_secret_bytes,
+        invo_aes_x_encrypt,  // <-- Pass the function directly
+        "X Key Ciphertext",
+    );
+
+    match z_key_number {
+        1 => keys.set_x1(x_key_ciphertext_base64),
+        2 => keys.set_x2(x_key_ciphertext_base64),
+        3 => keys.set_x3(x_key_ciphertext_base64),
+        4 => keys.set_x4(x_key_ciphertext_base64),
+        5 => keys.set_x5(x_key_ciphertext_base64),
+        _ => unreachable!(),
+    };
+}
