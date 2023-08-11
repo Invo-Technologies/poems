@@ -8,22 +8,25 @@ use std::io::Write;
 
 #[derive(Serialize, Deserialize)]
 pub struct Record {
-    // account_query: AccountQuery,
-    // blind_asset_record: BlindAssetRecord,
     keys: Keys,
+    account_query: AccountQuery,
+    
+   
 }
 
 #[allow(dead_code)] //remove for testing purposes
 impl Record {
     pub fn new(
-        // account_query: AccountQuery,
-        // blind_asset_record: BlindAssetRecord,
         keys: Keys,
+        account_query: AccountQuery,
+        
+        
     ) -> Self {
         Self {
-            // account_query,
-            // blind_asset_record,
             keys,
+            account_query,
+            
+            
         }
     }
 

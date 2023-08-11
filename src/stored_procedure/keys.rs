@@ -10,6 +10,24 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref KEYS: Mutex<Keys> = Mutex::new(Keys::new());
 }
+lazy_static! {
+    pub static ref ACCOUNTQUERY: Mutex<AccountQuery> = Mutex::new(AccountQuery::new());
+}
+#[derive(Serialize, Deserialize, Default, Clone)]
+struct XKey {
+    value: Option<String>,
+    function_id: Option<String>,
+}
+#[derive(Serialize, Deserialize, Default, Clone)]
+pub struct QueryStruct {
+    query_value: Option<String>,
+    tableset_value: Option<String>,
+}
+#[derive(Serialize, Deserialize, Default, Clone)]
+pub struct AleoStruct {
+    aleo_value: Option<String>,
+    tableset_value: Option<String>,
+}
 
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct Keys {
@@ -25,35 +43,28 @@ pub struct Keys {
     z3: Option<String>,
     z4: Option<String>,
     z5: Option<String>,
-    x1: Option<String>,
-    x2: Option<String>,
-    x3: Option<String>,
-    x4: Option<String>,
-    x5: Option<String>,
+    x1: Option<XKey>,
+    x2: Option<XKey>,
+    x3: Option<XKey>,
+    x4: Option<XKey>,
+    x5: Option<XKey>,
 }
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct AccountQuery {
-    pub node_id: Option<String>,
-    pub game_id: Option<String>,
-    pub default_currency: Option<String>,
-    pub load_balance: Option<f64>,
-    pub pool_id: Option<String>,
-    pub asset_id: Option<String>,
-    pub account_id: Option<String>,
-    pub gamertag: Option<String>,
-    pub public_key: Option<String>,
-}
-#[derive(Serialize, Deserialize, Clone)]
-pub struct BlindAssetRecord {
-    // The viewing key is a large String that can be changed.
-    pub viewing_key: Option<String>,
-    // The function_ids field is a map that associates each "z" with a function name.
-    // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
-    // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
-    pub function_ids: Option<HashMap<String, String>>,
+    node_id: Option<AleoStruct>,
+    game_id: Option<AleoStruct>,
+    default_currency: Option<QueryStruct>,
+    load_balance: Option<QueryStruct>,
+    pool_id: Option<AleoStruct>,
+    asset_id: Option<AleoStruct>,
+    account_id: Option<AleoStruct>,
+    gamertag: Option<QueryStruct>,
+    public_key: Option<QueryStruct>,
 }
 
-#[allow(dead_code)] // remove for testing purposes
+
+
+#[allow(dead_code)] // remove for testing function_ids
 impl Keys {
     // Create a new Keys object with all fields None
     pub fn new() -> Self {
@@ -115,31 +126,6 @@ impl Keys {
 
     pub fn set_z5(&mut self, value: String) {
         self.z5 = Some(value);
-    }
-
-    pub fn set_x1(&mut self, value: String) {
-        // should be used in aes.rs
-        self.x1 = Some(value);
-    }
-
-    pub fn set_x2(&mut self, value: String) {
-        // should be used in aes.rs
-        self.x2 = Some(value);
-    }
-
-    pub fn set_x3(&mut self, value: String) {
-        // should be used in aes.rs
-        self.x3 = Some(value);
-    }
-
-    pub fn set_x4(&mut self, value: String) {
-        // should be used in aes.rs
-        self.x4 = Some(value);
-    }
-
-    pub fn set_x5(&mut self, value: String) {
-        // should be used in aes.rs
-        self.x5 = Some(value);
     }
 
     // ------------------------------------------Getter functions------------------------------------------------------
@@ -277,77 +263,137 @@ impl Keys {
             }
         }
     }
+    pub fn set_x1(&mut self, value: String) {
+        let x1 = XKey {
+            value: Some(value),
+            function_id: Some("purchase".to_string()),
+        };
+        self.x1 = Some(x1);
+    }
+    pub fn set_x2(&mut self, value: String) {
+        let x2 = XKey {
+            value: Some(value),
+            function_id: Some("recover".to_string()),
+        };
+        self.x2 = Some(x2);
+    }
+    pub fn set_x3(&mut self, value: String) {
+        let x3 = XKey {
+            value: Some(value),
+            function_id: Some("spend".to_string()),
+        };
+        self.x3 = Some(x3);
+    }
+    pub fn set_x4(&mut self, value: String) {
+        let x4 = XKey {
+            value: Some(value),
+            function_id: Some("transfer".to_string()),
+        };
+        self.x4 = Some(x4);
+    }
+    pub fn set_x5(&mut self, value: String) {
+        let x5 = XKey {
+            value: Some(value),
+            function_id: Some("send".to_string()),
+        };
+        self.x5 = Some(x5);
+    }
 
     pub fn get_x1(&self) -> Option<&String> {
-        self.x1.as_ref()
+        self.x1.as_ref().and_then(|x1_key| x1_key.value.as_ref())
     }
 
     pub fn get_x2(&self) -> Option<&String> {
-        self.x2.as_ref()
+        self.x2.as_ref().and_then(|x2_key| x2_key.value.as_ref())
     }
 
     pub fn get_x3(&self) -> Option<&String> {
-        self.x3.as_ref()
+        self.x3.as_ref().and_then(|x3_key| x3_key.value.as_ref())
     }
 
     pub fn get_x4(&self) -> Option<&String> {
-        self.x4.as_ref()
+        self.x4.as_ref().and_then(|x4_key| x4_key.value.as_ref())
     }
 
     pub fn get_x5(&self) -> Option<&String> {
-        self.x5.as_ref()
+        self.x5.as_ref().and_then(|x5_key| x5_key.value.as_ref())
     }
 }
 // pub fn get_e(&self) -> Option<&String> {
 //     self.e.as_ref()
 // }
 
-#[allow(dead_code)] //remove for testing purposes
+
+#[allow(dead_code)] //remove for testing table_values
 impl AccountQuery {
     pub fn new() -> Self {
-        Self {
-            node_id: None,          // Aleo
-            game_id: None,          // Aleo
-            default_currency: None, //chosen
-            load_balance: None,     //chosen --
-            pool_id: None,          //Aleo
-            asset_id: None,         // Aleo
-            account_id: None,       //Aleo
-            gamertag: None,         //chosen
-            public_key: None,       //generated
+        AccountQuery {
+            ..Default::default()
         }
     }
 
     // Setters
-    pub fn set_node_id(&mut self, node_id: String) {
+    pub fn set_node_id(&mut self, aleo_value: String) {
+        let node_id = AleoStruct{
+            aleo_value: Some(aleo_value),
+            tableset_value: Some("node_id".to_string()),
+        };
         self.node_id = Some(node_id);
     }
 
-    pub fn set_game_id(&mut self, game_id: String) {
-        self.game_id = Some(game_id);
+    pub fn set_game_id(&mut self, aleo_value: String) {
+        let game_id = AleoStruct{
+            aleo_value: Some(aleo_value),
+            tableset_value: Some("game_id".to_string()),
+        };
+        self.game_id= Some(game_id);
     }
 
-    pub fn set_default_currency(&mut self, default_currency: String) {
+    pub fn set_default_currency(&mut self, query_value: String) {
+        let default_currency = QueryStruct{
+            query_value: Some(query_value),
+            tableset_value: Some("default_currency".to_string()),
+        };
         self.default_currency = Some(default_currency);
     }
 
-    pub fn set_load_balance(&mut self, load_balance: f64) {
+    pub fn set_load_balance(&mut self, query_value: String) {
+        let load_balance = QueryStruct{
+            query_value: Some(query_value),
+            tableset_value: Some("load_balance".to_string()),
+        };
         self.load_balance = Some(load_balance);
     }
 
-    pub fn set_pool_id(&mut self, pool_id: String) {
+    pub fn set_pool_id(&mut self, aleo_value: String) {
+        let pool_id = AleoStruct{
+            aleo_value: Some(aleo_value),
+            tableset_value: Some("pool_id".to_string()),
+        };
         self.pool_id = Some(pool_id);
     }
 
-    pub fn set_asset_id(&mut self, asset_id: String) {
+    pub fn set_asset_id(&mut self, aleo_value: String) {
+        let asset_id = AleoStruct{
+            aleo_value: Some(aleo_value),
+            tableset_value: Some("asset_id".to_string()),
+        };
         self.asset_id = Some(asset_id);
     }
 
-    pub fn set_account_id(&mut self, account_id: String) {
+    pub fn set_account_id(&mut self, aleo_value: String) {
+        let account_id = AleoStruct{
+            aleo_value: Some(aleo_value),
+            tableset_value: Some("account_id".to_string()),
+        };
         self.account_id = Some(account_id);
     }
 
-    pub fn set_gamertag(&mut self, gamertag: String) {
+    pub fn set_gamertag(&mut self, query_value: String) {
+        let gamertag = QueryStruct{
+            query_value: Some(query_value),
+            tableset_value: Some("gamertag".to_string()),
+        };
         self.gamertag = Some(gamertag);
     }
 
@@ -355,37 +401,40 @@ impl AccountQuery {
     //     self.public_key = Some(public_key);
     // }
 
+    
+//fix thhis shit
+
     // Getters
     pub fn get_node_id(&self) -> Option<&String> {
-        self.node_id.as_ref()
+        self.node_id.as_ref().and_then(|node_key| node_key.aleo_value.as_ref())
     }
 
     pub fn get_game_id(&self) -> Option<&String> {
-        self.game_id.as_ref()
+        self.game_id.as_ref().and_then(|game_key| game_key.aleo_value.as_ref())
     }
 
     pub fn get_default_currency(&self) -> Option<&String> {
-        self.default_currency.as_ref()
+        self.default_currency.as_ref().and_then(|currency_key| currency_key.query_value.as_ref())
     }
 
-    pub fn get_load_balance(&self) -> Option<f64> {
-        self.load_balance
+    pub fn get_load_balance(&self) -> Option<&String> {
+        self.load_balance.as_ref().and_then(|load| load.query_value.as_ref())
     }
 
     pub fn get_pool_id(&self) -> Option<&String> {
-        self.pool_id.as_ref()
+        self.pool_id.as_ref().and_then(|pool_key| pool_key.aleo_value.as_ref())
     }
 
     pub fn get_asset_id(&self) -> Option<&String> {
-        self.asset_id.as_ref()
+        self.asset_id.as_ref().and_then(|asset_key| asset_key.aleo_value.as_ref())
     }
 
     pub fn get_account_id(&self) -> Option<&String> {
-        self.account_id.as_ref()
+        self.account_id.as_ref().and_then(|account_key| account_key.aleo_value.as_ref())
     }
 
     pub fn get_gamertag(&self) -> Option<&String> {
-        self.gamertag.as_ref()
+        self.gamertag.as_ref().and_then(|gamer_tag| gamer_tag.query_value.as_ref())
     }
 
     // pub fn get_public_key(&self) -> Option<&String> {
@@ -393,7 +442,19 @@ impl AccountQuery {
     // }
 }
 
-#[allow(dead_code)] //remove for testing purposes
+#[derive(Serialize, Deserialize, Clone)]
+pub struct BlindAssetRecord {
+    // The viewing key is a large String that can be changed.
+    pub viewing_key: Option<String>,
+    // The function_ids field is a map that associates each "z" with a function name.
+    // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
+    // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
+    pub function_ids: Option<HashMap<String, String>>,
+}
+
+
+/* 
+#[allow(dead_code)] //remove for testing table_values
 impl BlindAssetRecord {
     // The constructor function for BlindAssetRecord.
     // It creates a new BlindAssetRecord with no viewing_key and an empty map of function_ids.
@@ -432,3 +493,4 @@ impl BlindAssetRecord {
     // - Aleo Program Secrets
     // -- z = { seed, sha256, game_id, pool_id, [function_id: string]} // String is exit or transfer or swap
 }
+*/

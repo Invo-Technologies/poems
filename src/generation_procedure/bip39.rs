@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use crate::stored_procedure::keys::{AccountQuery, BlindAssetRecord, Keys};
+use crate::stored_procedure::keys::{AccountQuery, Keys};
 use colored::*;
 // Importing necessary libraries and modules.
 #[allow(unused_imports)]

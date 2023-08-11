@@ -2,7 +2,7 @@
 mod generation_procedure;
 mod stored_procedure;
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
-use crate::stored_procedure::keys::Keys;
+use crate::stored_procedure::keys::{Keys, AccountQuery};
 use crate::stored_procedure::record::Record;
 //use aes::Aes256;
 #[allow(unused_imports)]
@@ -23,11 +23,11 @@ use colored::*;
 use data_encoding::BASE64_NOPAD;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
 use generation_procedure::bip39::{
-    generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed, hex_to_bin,
-    hex_to_entropy,
-};
+    generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed, 
+   
+}; // hex_to_entropy, hex_to_bin,
 use generation_procedure::sha256;
-use hex;
+// use hex;
 use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
 #[allow(unused_imports)]
@@ -85,12 +85,27 @@ fn read_nonempty_string_from_user(prompt: &str) -> String {
         );
     }
 }
-fn update_record_and_pause(keys: &Keys) {
-    let record_instance = Record::new(keys.clone());
+
+fn prompt_for_integer(prompt: &str) -> String {
+    let mut input = String::new();
+    loop {
+        print!("{}", prompt);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut input).unwrap();
+        if let Ok(_) = input.trim().parse::<i32>() {
+            return input.trim().to_string();
+        }
+        println!("{}", "You must enter a valid integer. Please try again.".red());
+        input.clear(); // Clear the input buffer to accept a new value in the next iteration
+    }
+}
+fn update_record_and_pause(keys: &Keys, account_query: &AccountQuery) {
+    let record_instance = Record::new(keys.clone(), account_query.clone());
     record_instance.update_json();
     println!("Record updated in record.json");
     task::block_on(short_delay());
 }
+
 
 fn process_and_encrypt(
     input_bytes: &[u8],
@@ -119,33 +134,52 @@ fn process_and_encrypt(
 }
 
 async fn short_delay() {
-    task::sleep(std::time::Duration::from_secs(3)).await;
+    task::sleep(std::time::Duration::from_secs(1)).await;
 }
+
 
 #[warn(non_snake_case)]
 fn main() {
+    println!(
+        "{}",
+        "\n================================================================= Game Developer's Account Query Program =================================================================\n".green()
+    );
+    let mut keys = Keys::new();
+    let mut query = AccountQuery::new();
+    Record::init_json();
+    
+   
+    let gamer_tag = read_nonempty_string_from_user("\n Enter your Gamer Tag: ");
+    let default_currecy =  read_nonempty_string_from_user("\n Enter the name of your Game's Default Currency: "); 
+    let load_balance = prompt_for_integer("\n How much will you front load into your economy?: ");
+    
+    query.set_gamertag(gamer_tag);
+    update_record_and_pause(&keys,&query);
+    query.set_default_currency(default_currecy);
+    update_record_and_pause(&keys,&query);
+    query.set_load_balance(load_balance);
+    update_record_and_pause(&keys,&query);
+    
+
+
     // We start the program with a greeting.
     println!(
         "{}",
         "\n================================================================= BIP39 Program =================================================================\n".green()
     );
     println!("\nTest program using this link: https://learnmeabitcoin.com/technical/mnemonic\n");
-    task::block_on(short_delay());
-    // Initialize the Keys struct and the Json Artifact that will be updated.
-    let mut keys = Keys::new();
-    Record::init_json();
-    task::block_on(short_delay());
+
     println!("Create Empty record.json initialized.");
-    println!("\n");
-    update_record_and_pause(&keys);
-    println!("\n");
     // Generate entropy for mnemonic using BIP39 standard and set in keys.rs.
     let entropy = generate_entropy(&mut keys);
 
+    println!("\n");
+    update_record_and_pause(&keys,&query);
+    println!("\n");
     // Create a new Record instance with the updated Z keys
     let _zgen = generate_and_set_z_keys(&mut keys);
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys,&query);
     println!("\n");
 
     // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
@@ -166,7 +200,7 @@ fn main() {
     print!("line 95 main.rs __  {}\n", &entropy_hex);
 
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys, &query);
     println!("\n");
 
     println!(
@@ -188,7 +222,7 @@ fn main() {
     );
 
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys,&query);
     println!("\n");
     println!(
         "{}",
@@ -213,7 +247,7 @@ fn main() {
     keys.set_y(&hmac_hex_2);
 
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys,&query);
     println!("\n");
 
     println!(
@@ -241,7 +275,7 @@ fn main() {
     keys.set_s(s_key_ciphertext_base64);
 
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys,&query);
     println!("\n");
 
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -264,7 +298,7 @@ fn main() {
     // keys.set_x1(x_key_ciphertext_base64);
 
     println!("\n");
-    update_record_and_pause(&keys);
+    update_record_and_pause(&keys,&query);
     println!("\n");
 
     println!(
