@@ -36,12 +36,6 @@ use std::io::{self, Write};
 extern crate rand;
 extern crate rsa;
 
-//end result will be that the program will generate everything without awaiting for any input and still get the same successfull out's from main.
-// and then the only thing this program will ever do, is await for the S and X interpretation's and run the program to generate a matching result.
-
-// type Aes256CbcEnc = Encryptor<Aes256>;
-// type Aes256CbcDec = Decryptor<Aes256>;
-
 fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
     let mut input = String::from(default);
     loop {
@@ -82,8 +76,34 @@ fn update_record_and_pause(keys: &Keys) {
     task::block_on(short_delay());
 }
 
+fn process_and_encrypt(
+    input_bytes: &[u8],
+    secret_bytes: &[u8],
+    encrypt_fn: fn(&[u8], &[u8]) -> Vec<u8>,
+    message: &str,
+) -> String {
+    // Create a SHA-256 hash from the secret bytes
+    let mut hasher = Sha256::new();
+    hasher.update(secret_bytes);
+    let hash = hasher.finalize();
+
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32];
+    hkdf.expand(&[], &mut key).expect("Failed to generate key");
+
+    // Encrypt using the provided function
+    let ciphertext = encrypt_fn(input_bytes, &key);
+    let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
+
+    // Print the result
+    println!("\n {}: {}", message, &ciphertext_base64);
+
+    ciphertext_base64
+}
+
 async fn short_delay() {
-    task::sleep(std::time::Duration::from_secs(3)).await;
+    task::sleep(std::time::Duration::from_secs(1)).await;
 }
 
 #[warn(non_snake_case)]
@@ -105,7 +125,7 @@ fn main() {
     println!("\n");
     // Generate entropy for mnemonic using BIP39 standard and set in keys.rs.
     let entropy = generate_entropy(&mut keys);
-    
+
     // Create a new Record instance with the updated Z keys
     let _zgen = generate_and_set_z_keys(&mut keys);
     println!("\n");
@@ -129,31 +149,6 @@ fn main() {
     let entropy_hex = keys.get_e().map(|s| s.to_string()).unwrap_or_default();
     print!("line 95 main.rs __  {}\n", &entropy_hex);
 
-    match hex_to_bin(&entropy_hex) {
-        Ok(bin_string) => {
-            println!("{}", "\n=== Entropy in Binary ===".green());
-            println!("{}", bin_string);
-        }
-        Err(e) => {
-            println!("{}", "\n=== Error while converting hex to binary ===".red());
-            eprintln!("{:?}", e);
-        }
-    };
-
-    match hex_to_entropy(&entropy_hex) {
-        Ok(original_entropy) => {
-            println!("{}", "\n=== brooooo Original Entropy from Hex ===".green());
-            println!("{}", hex::encode(&original_entropy));
-        }
-        Err(e) => {
-            println!(
-                "{}",
-                "\n=== Error while converting hex back to entropy ===".red()
-            );
-            eprintln!("{:?}", e);
-        }
-    };
-
     println!("\n");
     update_record_and_pause(&keys);
     println!("\n");
@@ -163,17 +158,13 @@ fn main() {
         "\n=============================================================== Account Keys ===========================================================\n".blue()
     );
 
-    match generate_rsa_keys(&mut keys) {
-        Ok(()) => println!("RSA keys generated successfully - 136 main.rs"),
-        Err(e) => eprintln!("Error generating RSA keys: -- main.rs 137 {}", e),
-    }
+    let _rsa_keys = generate_rsa_keys(&mut keys);
+
     let pk_key = keys.get_pk();
     let new_pk_key = pk_key.unwrap().replace("\"", "").to_string();
-    println!("\n--main 141 new_private key bro: {}", new_pk_key);
 
     let p_key = keys.get_p();
     let new_p_key = p_key.unwrap().replace("\"", "");
-    println!("\n--main 146 new_p_key key bro: {}", new_p_key);
 
     println!(
         "{}",
@@ -196,37 +187,11 @@ fn main() {
 
     let derived_seed = keys.get_d();
     let new_derived_seed = derived_seed.unwrap().replace("\"", "");
-    println!("\n--main 146 new public key bro: {}", new_derived_seed);
-    //keey testing the program. Get the derived seed and the private keys to be combines for Y, and then prove it's true by using the input variables.
 
     println!("\nderived seed (m) + private key (pk)= Y\n");
 
-    let input = read_nonempty_string_from_user_default(
-        "\nEnter Input / derived seed from mnemonic: ",
-        &new_derived_seed,
-    ); // is there a way to
-
-    let secret =
-        read_nonempty_string_from_user_default("\nEnter Secret / private key: ", &new_pk_key);
-
-    let (hmac_binary, hmac_hex) = sha256::generate_hmac(&secret.as_bytes(), &input.as_bytes());
-
-    let (hmac_binary_2, hmac_hex_2) =
+    let (_hmac_binary_2, hmac_hex_2) =
         sha256::generate_hmac(&new_pk_key.as_bytes(), &new_derived_seed.as_bytes());
-
-    println!("\nHMAC in binary: -- 239 main :\n{}", hmac_binary.red());
-
-    println!(
-        "\nHMAC in hex: -- 240 main  used to store Y :\n{}",
-        hmac_hex.red()
-    );
-
-    println!(
-        "\nHMAC in binary:-- 241 main : \n{}",
-        hmac_binary_2.yellow()
-    );
-
-    println!("\nHMAC in hex: --242 main : \n{}", &hmac_hex_2.yellow());
 
     //set Y keys.rs, and then use during decryption.
     keys.set_y(&hmac_hex_2);
@@ -243,35 +208,21 @@ fn main() {
     //--------------------------------------------------------------------------------------------------------------------------------
     //the problem here is that the private key is too large to be decrypted back. test the sha256 to get the original input again once I use the private key as a default secret.
 
-    // This makes S key
-    let input = read_nonempty_string_from_user("Enter entropy (e) to be encrypted: ");
-    let input_bytes = input.trim().as_bytes();
-    let secret = read_nonempty_string_from_user_default(
-        "\nPress [Enter] Private key as secret for S: ",
-        &new_pk_key,
-    );
-    println!("\n--314 this is what you just used as the secret. It should have been the full private key: \n{}\n", &secret);
-    let secret_bytes = secret.trim().as_bytes();
-    // println!(
-    //     "\n--317 this is the secret key (private key) trimmed as bytes \n{}\n",
-    //     &secret
-    // ); // check for consitency
+    let s_input = keys.get_e();
+    let new_entropy = s_input.unwrap().replace("\"", "");
+    let entropy_bytes = new_entropy.trim().as_bytes();
+    let new_pk_key_bytes = new_pk_key.trim().as_bytes();
+
+    // // This makes S key
 
     // Generate a hash from the password
-    let mut hasher = Sha256::new();
-    hasher.update(secret_bytes);
-    let hash = hasher.finalize();
-
-    // Derive a 256-bit key from the hash
-    let hkdf = Hkdf::<Sha256>::new(None, &hash);
-    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-    hkdf.expand(&[], &mut key).expect("Failed to generate key");
-
-    let ciphertext = invo_aes_encrypt(input_bytes, &key);
-    let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-    print!("{}", "\n S Key Ciphertext: ".yellow());
-    println!("{}", &ciphertext_base64);
-    keys.set_s(ciphertext_base64);
+    let s_key_ciphertext_base64 = process_and_encrypt(
+        entropy_bytes,
+        new_pk_key_bytes,
+        invo_aes_encrypt,
+        "S Key Ciphertext",
+    );
+    keys.set_s(s_key_ciphertext_base64);
 
     println!("\n");
     update_record_and_pause(&keys);
@@ -279,33 +230,19 @@ fn main() {
 
     //--------------------------------------------------------------------------------------------------------------------------------
 
-    //this makes X key
-    let x_input = read_nonempty_string_from_user("Enter The Z1 key to be encrypted: ");
-    let x_input_bytes = x_input.trim().as_bytes();
-    let x_secret = read_nonempty_string_from_user_default(
-        "\n Press [Enter] to use Y as secret for X:",
-        &hmac_hex_2,
+    let x_input = keys.get_z1();
+    let new_ziffie = x_input.unwrap().replace("\"", "");
+    let ziffie_bytes = new_ziffie.trim().as_bytes();
+
+    let x_secret_bytes = hmac_hex_2.trim().as_bytes();
+
+    let x_key_ciphertext_base64 = process_and_encrypt(
+        ziffie_bytes,
+        x_secret_bytes,
+        invo_aes_x_encrypt,
+        "X Key Ciphertext",
     );
-    println!("\n--356 this is what you just used as the secret. It should have been the full Private key: \n{}\n", &x_secret);
-    let x_secret_bytes = x_secret.trim().as_bytes();
-
-    // :: turn this into a quick function that is performed in main and then quickly called.
-    let mut x_hasher = Sha256::new();
-    x_hasher.update(x_secret_bytes);
-    let x_hash = x_hasher.finalize();
-
-    // Derive a 256-bit key from the hash
-    let x_hkdf = Hkdf::<Sha256>::new(None, &x_hash);
-    let mut x_key = [0u8; 32]; // AES256 requires a 32-byte key
-    x_hkdf
-        .expand(&[], &mut x_key)
-        .expect("Failed to generate key");
-
-    let x_ciphertext = invo_aes_x_encrypt(x_input_bytes, &x_key);
-    let x_ciphertext_base64 = BASE64_NOPAD.encode(&x_ciphertext);
-    print!("{}", "\n X Key Ciphertext: ".yellow());
-    println!("{}", &x_ciphertext_base64);
-    keys.set_x1(x_ciphertext_base64);
+    keys.set_x1(x_key_ciphertext_base64);
 
     println!("\n");
     update_record_and_pause(&keys);
