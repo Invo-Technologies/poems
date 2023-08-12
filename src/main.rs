@@ -2,7 +2,7 @@
 mod generation_procedure;
 mod stored_procedure;
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
-use crate::stored_procedure::keys::{Keys, AccountQuery};
+use crate::stored_procedure::keys::{AccountQuery, Keys};
 use crate::stored_procedure::record::Record;
 //use aes::Aes256;
 #[allow(unused_imports)]
@@ -23,21 +23,20 @@ use colored::*;
 use data_encoding::BASE64_NOPAD;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
 use generation_procedure::bip39::{
-    generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed, 
-   
+    generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed,
 }; // hex_to_entropy, hex_to_bin,
 use generation_procedure::sha256;
 // use hex;
+use dirs;
 use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
 #[allow(unused_imports)]
 use std::fs;
-use std::path::PathBuf;
-use dirs;
 use std::io::{self, Write};
+use std::path::PathBuf;
 extern crate rand;
 extern crate rsa;
-use serde_json::{Value, Map};
+use serde_json::{Map, Value};
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -97,7 +96,10 @@ fn prompt_for_integer(prompt: &str) -> String {
         if let Ok(_) = input.trim().parse::<i32>() {
             return input.trim().to_string();
         }
-        println!("{}", "You must enter a valid integer. Please try again.".red());
+        println!(
+            "{}",
+            "You must enter a valid integer. Please try again.".red()
+        );
         input.clear(); // Clear the input buffer to accept a new value in the next iteration
     }
 }
@@ -107,7 +109,6 @@ fn update_record_and_pause(keys: &Keys, account_query: &AccountQuery) {
     println!("Record updated in record.json");
     task::block_on(short_delay());
 }
-
 
 fn process_and_encrypt(
     input_bytes: &[u8],
@@ -135,11 +136,9 @@ fn process_and_encrypt(
     ciphertext_base64
 }
 
-
 async fn short_delay() {
     task::sleep(std::time::Duration::from_secs(1)).await;
 }
-
 
 #[warn(non_snake_case)]
 fn main() {
@@ -150,20 +149,18 @@ fn main() {
     let mut keys = Keys::new();
     let mut query = AccountQuery::new();
     Record::init_json();
-    
-   
-    let gamer_tag = read_nonempty_string_from_user("\n Enter your Gamer Tag: ");
-    let default_currecy =  read_nonempty_string_from_user("\n Enter the name of your Game's Default Currency: "); 
-    let load_balance = prompt_for_integer("\n How much will you front load into your economy?: ");
-    
-    query.set_gamertag(gamer_tag);
-    update_record_and_pause(&keys,&query);
-    query.set_default_currency(default_currecy);
-    update_record_and_pause(&keys,&query);
-    query.set_load_balance(load_balance);
-    update_record_and_pause(&keys,&query);
-    
 
+    let gamer_tag = read_nonempty_string_from_user("\n Enter your Gamer Tag: ");
+    let default_currecy =
+        read_nonempty_string_from_user("\n Enter the name of your Game's Default Currency: ");
+    let load_balance = prompt_for_integer("\n How much will you front load into your economy?: ");
+
+    query.set_gamertag(gamer_tag);
+    update_record_and_pause(&keys, &query);
+    query.set_default_currency(default_currecy);
+    update_record_and_pause(&keys, &query);
+    query.set_load_balance(load_balance);
+    update_record_and_pause(&keys, &query);
 
     // We start the program with a greeting.
     println!(
@@ -177,12 +174,12 @@ fn main() {
     let entropy = generate_entropy(&mut keys);
 
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
     // Create a new Record instance with the updated Z keys
     let _zgen = generate_and_set_z_keys(&mut keys);
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
 
     // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
@@ -225,7 +222,7 @@ fn main() {
     );
 
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
     println!(
         "{}",
@@ -250,7 +247,7 @@ fn main() {
     keys.set_y(&hmac_hex_2);
 
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
 
     println!(
@@ -278,7 +275,7 @@ fn main() {
     keys.set_s(s_key_ciphertext_base64);
 
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
 
     //--------------------------------------------------------------------------------------------------------------------------------
@@ -301,7 +298,7 @@ fn main() {
     // keys.set_x1(x_key_ciphertext_base64);
 
     println!("\n");
-    update_record_and_pause(&keys,&query);
+    update_record_and_pause(&keys, &query);
     println!("\n");
     // create_interpretations_file().expect("Failed to create interpretations file");
     if let Err(e) = extract_and_write() {
@@ -482,11 +479,7 @@ impl fmt::Display for AesError {
 
 // aes decrypt the ciphertext string back to the original input value.
 // in bip39, generate_and_set_z_keys will use RPC to call the Aleo Record to collect Z first, and await to set z.
-fn process_and_set_x_for_z(
-    keys: &mut Keys,
-    hmac_hex_2: &str,
-    z_key_number: u32,
-) {
+fn process_and_set_x_for_z(keys: &mut Keys, hmac_hex_2: &str, z_key_number: u32) {
     let z_input = match z_key_number {
         1 => keys.get_z1(),
         2 => keys.get_z2(),
@@ -503,7 +496,7 @@ fn process_and_set_x_for_z(
     let x_key_ciphertext_base64 = process_and_encrypt(
         ziffie_bytes,
         x_secret_bytes,
-        invo_aes_x_encrypt,  // <-- Pass the function directly
+        invo_aes_x_encrypt, // <-- Pass the function directly
         "X Key Ciphertext",
     );
 
@@ -516,10 +509,6 @@ fn process_and_set_x_for_z(
         _ => unreachable!(),
     };
 }
-
-
-
-
 
 fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     // Read the record.json file
@@ -564,9 +553,6 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
-
-
 // fn create_interpretations_file() -> Result<(), Box<dyn std::error::Error>> {
 //     // 1. Read the record.json file
 //     let data = fs::read_to_string("record.json")?;
@@ -595,8 +581,3 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
 
 //     Ok(())
 // }
-
-
-
-
-

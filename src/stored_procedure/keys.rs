@@ -67,8 +67,6 @@ pub struct AccountQuery {
     public_key: Option<QueryStruct>,
 }
 
-
-
 #[allow(dead_code)] // remove for testing function_ids
 impl Keys {
     // Create a new Keys object with all fields None
@@ -107,10 +105,6 @@ impl Keys {
     pub fn set_y(&mut self, value: &str) {
         self.y = Some(value.to_string());
     }
-
-
-    
-
 
     pub fn set_z1(&mut self, value: String) {
         self.z1 = Some(value);
@@ -199,23 +193,9 @@ impl Keys {
         self.y.as_ref()
     }
 
-
-    
-
     // pub fn get_x1(&self) -> Option<&String> {
     //     self.x1.as_ref().and_then(|x1_key| x1_key.interpretation.as_ref())
     // }
-
-
-
-
-
-   
-
-
-
-
-
 
     pub fn get_z1(&self) -> Option<&String> {
         match self.z1.as_ref() {
@@ -326,7 +306,9 @@ impl Keys {
     }
 
     pub fn get_x1(&self) -> Option<&String> {
-        self.x1.as_ref().and_then(|x1_key| x1_key.interpretation.as_ref())
+        self.x1
+            .as_ref()
+            .and_then(|x1_key| x1_key.interpretation.as_ref())
     }
 
     pub fn get_s(&self) -> Option<&String> {
@@ -334,25 +316,32 @@ impl Keys {
     }
 
     pub fn get_x2(&self) -> Option<&String> {
-        self.x2.as_ref().and_then(|x2_key| x2_key.interpretation.as_ref())
+        self.x2
+            .as_ref()
+            .and_then(|x2_key| x2_key.interpretation.as_ref())
     }
 
     pub fn get_x3(&self) -> Option<&String> {
-        self.x3.as_ref().and_then(|x3_key| x3_key.interpretation.as_ref())
+        self.x3
+            .as_ref()
+            .and_then(|x3_key| x3_key.interpretation.as_ref())
     }
 
     pub fn get_x4(&self) -> Option<&String> {
-        self.x4.as_ref().and_then(|x4_key| x4_key.interpretation.as_ref())
+        self.x4
+            .as_ref()
+            .and_then(|x4_key| x4_key.interpretation.as_ref())
     }
 
     pub fn get_x5(&self) -> Option<&String> {
-        self.x5.as_ref().and_then(|x5_key| x5_key.interpretation.as_ref())
+        self.x5
+            .as_ref()
+            .and_then(|x5_key| x5_key.interpretation.as_ref())
     }
 }
 // pub fn get_e(&self) -> Option<&String> {
 //     self.e.as_ref()
 // }
-
 
 #[allow(dead_code)] //remove for testing table_values
 impl AccountQuery {
@@ -364,7 +353,7 @@ impl AccountQuery {
 
     // Setters
     pub fn set_node_id(&mut self, aleo_value: String) {
-        let node_id = AleoStruct{
+        let node_id = AleoStruct {
             aleo_value: Some(aleo_value),
             tableset_value: Some("node_id".to_string()),
         };
@@ -372,15 +361,15 @@ impl AccountQuery {
     }
 
     pub fn set_game_id(&mut self, aleo_value: String) {
-        let game_id = AleoStruct{
+        let game_id = AleoStruct {
             aleo_value: Some(aleo_value),
             tableset_value: Some("game_id".to_string()),
         };
-        self.game_id= Some(game_id);
+        self.game_id = Some(game_id);
     }
 
     pub fn set_default_currency(&mut self, query_value: String) {
-        let default_currency = QueryStruct{
+        let default_currency = QueryStruct {
             query_value: Some(query_value),
             tableset_value: Some("default_currency".to_string()),
         };
@@ -388,7 +377,7 @@ impl AccountQuery {
     }
 
     pub fn set_load_balance(&mut self, query_value: String) {
-        let load_balance = QueryStruct{
+        let load_balance = QueryStruct {
             query_value: Some(query_value),
             tableset_value: Some("load_balance".to_string()),
         };
@@ -396,7 +385,7 @@ impl AccountQuery {
     }
 
     pub fn set_pool_id(&mut self, aleo_value: String) {
-        let pool_id = AleoStruct{
+        let pool_id = AleoStruct {
             aleo_value: Some(aleo_value),
             tableset_value: Some("pool_id".to_string()),
         };
@@ -404,7 +393,7 @@ impl AccountQuery {
     }
 
     pub fn set_asset_id(&mut self, aleo_value: String) {
-        let asset_id = AleoStruct{
+        let asset_id = AleoStruct {
             aleo_value: Some(aleo_value),
             tableset_value: Some("asset_id".to_string()),
         };
@@ -412,7 +401,7 @@ impl AccountQuery {
     }
 
     pub fn set_account_id(&mut self, aleo_value: String) {
-        let account_id = AleoStruct{
+        let account_id = AleoStruct {
             aleo_value: Some(aleo_value),
             tableset_value: Some("account_id".to_string()),
         };
@@ -420,7 +409,7 @@ impl AccountQuery {
     }
 
     pub fn set_gamertag(&mut self, query_value: String) {
-        let gamertag = QueryStruct{
+        let gamertag = QueryStruct {
             query_value: Some(query_value),
             tableset_value: Some("gamertag".to_string()),
         };
@@ -431,40 +420,55 @@ impl AccountQuery {
     //     self.public_key = Some(public_key);
     // }
 
-    
-//fix thhis shit
+    //fix thhis shit
 
     // Getters
     pub fn get_node_id(&self) -> Option<&String> {
-        self.node_id.as_ref().and_then(|node_key| node_key.aleo_value.as_ref())
+        self.node_id
+            .as_ref()
+            .and_then(|node_key| node_key.aleo_value.as_ref())
     }
 
     pub fn get_game_id(&self) -> Option<&String> {
-        self.game_id.as_ref().and_then(|game_key| game_key.aleo_value.as_ref())
+        self.game_id
+            .as_ref()
+            .and_then(|game_key| game_key.aleo_value.as_ref())
     }
 
     pub fn get_default_currency(&self) -> Option<&String> {
-        self.default_currency.as_ref().and_then(|currency_key| currency_key.query_value.as_ref())
+        self.default_currency
+            .as_ref()
+            .and_then(|currency_key| currency_key.query_value.as_ref())
     }
 
     pub fn get_load_balance(&self) -> Option<&String> {
-        self.load_balance.as_ref().and_then(|load| load.query_value.as_ref())
+        self.load_balance
+            .as_ref()
+            .and_then(|load| load.query_value.as_ref())
     }
 
     pub fn get_pool_id(&self) -> Option<&String> {
-        self.pool_id.as_ref().and_then(|pool_key| pool_key.aleo_value.as_ref())
+        self.pool_id
+            .as_ref()
+            .and_then(|pool_key| pool_key.aleo_value.as_ref())
     }
 
     pub fn get_asset_id(&self) -> Option<&String> {
-        self.asset_id.as_ref().and_then(|asset_key| asset_key.aleo_value.as_ref())
+        self.asset_id
+            .as_ref()
+            .and_then(|asset_key| asset_key.aleo_value.as_ref())
     }
 
     pub fn get_account_id(&self) -> Option<&String> {
-        self.account_id.as_ref().and_then(|account_key| account_key.aleo_value.as_ref())
+        self.account_id
+            .as_ref()
+            .and_then(|account_key| account_key.aleo_value.as_ref())
     }
 
     pub fn get_gamertag(&self) -> Option<&String> {
-        self.gamertag.as_ref().and_then(|gamer_tag| gamer_tag.query_value.as_ref())
+        self.gamertag
+            .as_ref()
+            .and_then(|gamer_tag| gamer_tag.query_value.as_ref())
     }
 
     // pub fn get_public_key(&self) -> Option<&String> {
@@ -482,8 +486,7 @@ pub struct BlindAssetRecord {
     pub function_ids: Option<HashMap<String, String>>,
 }
 
-
-/* 
+/*
 #[allow(dead_code)] //remove for testing table_values
 impl BlindAssetRecord {
     // The constructor function for BlindAssetRecord.

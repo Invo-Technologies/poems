@@ -8,8 +8,7 @@ use bip39::{Error, Mnemonic}; // Library to work with BIP39 mnemonic.
 use hex::*; // Library for hexadecimal related operations.
 use rand::Rng; // Library for random number generation.
 
-
-//this function needs to be rewritten to set the value of z, after using rpc call instead of generating the keys here. 
+//this function needs to be rewritten to set the value of z, after using rpc call instead of generating the keys here.
 pub fn generate_and_set_z_keys(keys: &mut Keys) {
     let mut rng = rand::thread_rng(); // Thread-local random number generator.
 
@@ -119,4 +118,3 @@ pub fn hex_to_entropy(hex_string: &str) -> Result<Vec<u8>, hex::FromHexError> {
 
 //testing to set z key's for decryption process August 5th, 2023
 // set 256 byte length keys, similar to how aleo will use bhp to build/set these keys.
-

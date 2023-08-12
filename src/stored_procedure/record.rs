@@ -10,23 +10,14 @@ use std::io::Write;
 pub struct Record {
     keys: Keys,
     account_query: AccountQuery,
-    
-   
 }
 
 #[allow(dead_code)] //remove for testing purposes
 impl Record {
-    pub fn new(
-        keys: Keys,
-        account_query: AccountQuery,
-        
-        
-    ) -> Self {
+    pub fn new(keys: Keys, account_query: AccountQuery) -> Self {
         Self {
             keys,
             account_query,
-            
-            
         }
     }
 
