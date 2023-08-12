@@ -32,10 +32,12 @@ use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
 #[allow(unused_imports)]
 use std::fs;
+use std::path::PathBuf;
+use dirs;
 use std::io::{self, Write};
 extern crate rand;
 extern crate rsa;
-use serde_json::Value;
+use serde_json::{Value, Map};
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -132,6 +134,7 @@ fn process_and_encrypt(
 
     ciphertext_base64
 }
+
 
 async fn short_delay() {
     task::sleep(std::time::Duration::from_secs(1)).await;
@@ -300,6 +303,10 @@ fn main() {
     println!("\n");
     update_record_and_pause(&keys,&query);
     println!("\n");
+    // create_interpretations_file().expect("Failed to create interpretations file");
+    if let Err(e) = extract_and_write() {
+        eprintln!("Error: {}", e);
+    }
 
     println!(
         "{}",
@@ -509,3 +516,87 @@ fn process_and_set_x_for_z(
         _ => unreachable!(),
     };
 }
+
+
+
+
+
+fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
+    // Read the record.json file
+    let data = fs::read_to_string("record.json")?;
+    let parsed_data: Value = serde_json::from_str(&data)?;
+
+    // Extract the desired keys and their values
+    let keys_to_extract = ["s", "x1", "x2", "x3", "x4", "x5"];
+    let mut extracted_data = Map::new();
+
+    if let Value::Object(ref main_obj) = parsed_data {
+        if let Some(Value::Object(ref keys_obj)) = main_obj.get("keys") {
+            for key in keys_to_extract.iter() {
+                if let Some(value) = keys_obj.get(*key) {
+                    extracted_data.insert(key.to_string(), value.clone());
+                }
+            }
+        }
+    }
+
+    // Format the extracted data for better presentation
+    let mut output = String::new();
+    for (key, value) in extracted_data.iter() {
+        output.push_str(&format!("Key: {}\n", key));
+        if let Value::Object(ref obj) = value {
+            for (sub_key, sub_value) in obj.iter() {
+                output.push_str(&format!("  {}: {}\n", sub_key, sub_value));
+            }
+        }
+        output.push_str("\n");
+    }
+
+    // Get the desktop path using the dirs crate
+    let mut desktop_path = dirs::desktop_dir().unwrap_or(PathBuf::from("."));
+    desktop_path.push("interpretations.txt");
+
+    // Write the formatted data to interpretations.txt on the desktop
+    fs::write(desktop_path, output)?;
+
+    println!("Data has been written to interpretations.txt on your desktop!");
+
+    Ok(())
+}
+
+
+
+
+// fn create_interpretations_file() -> Result<(), Box<dyn std::error::Error>> {
+//     // 1. Read the record.json file
+//     let data = fs::read_to_string("record.json")?;
+//     let json_data: Value = serde_json::from_str(&data)?;
+
+//     // 2. Extract the required values
+//     let s_value = json_data["keys"]["s"].as_str().unwrap_or_default();
+//     let x_values: Vec<String> = (1..=5)
+//         .map(|i| {
+//             let key = format!("x{}", i);
+//             json_data["keys"][&key]["value"].as_str().unwrap_or_default().to_string()
+//         })
+//         .collect();
+
+//     // 3. Write these values to a new file named "interpretations.txt" on your desktop
+//     let desktop_path = dirs::desktop_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
+//     let output_path = desktop_path.join("interpretations.txt");
+//     let mut content = s_value.to_string();
+//     for x in x_values {
+//         content.push_str("\n");
+//         content.push_str(&x);
+//     }
+//     fs::write(output_path, content)?;
+
+//     println!("File created successfully on the desktop!");
+
+//     Ok(())
+// }
+
+
+
+
+

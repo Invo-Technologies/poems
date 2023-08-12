@@ -15,8 +15,13 @@ lazy_static! {
 }
 #[derive(Serialize, Deserialize, Default, Clone)]
 struct XKey {
-    value: Option<String>,
+    interpretation: Option<String>,
     function_id: Option<String>,
+}
+#[derive(Serialize, Deserialize, Default, Clone)]
+struct SKey {
+    hash: Option<String>,
+    s_key: Option<String>,
 }
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct QueryStruct {
@@ -37,7 +42,7 @@ pub struct Keys {
     p: Option<String>, // rsa -> public key                                                                                                  |
     pk: Option<String>, // rsa -> private key                                                                                                 |
     y: Option<String>, // sha256 -> will use derived seed  (d) as input, and pk as secret using                                              |
-    s: Option<String>, // aes_gmc -> interpretation cipher. Pk is the secret to return back to entropy (e) <---------------------------------| *
+    s: Option<SKey>, // aes_gmc -> interpretation cipher. Pk is the secret to return back to entropy (e) <---------------------------------| *
     z1: Option<String>,
     z2: Option<String>,
     z3: Option<String>,
@@ -103,10 +108,9 @@ impl Keys {
         self.y = Some(value.to_string());
     }
 
-    pub fn set_s(&mut self, value: String) {
-        // should be used in aes.rs
-        self.s = Some(value);
-    }
+
+    
+
 
     pub fn set_z1(&mut self, value: String) {
         self.z1 = Some(value);
@@ -195,9 +199,23 @@ impl Keys {
         self.y.as_ref()
     }
 
-    pub fn get_s(&self) -> Option<&String> {
-        self.s.as_ref()
-    }
+
+    
+
+    // pub fn get_x1(&self) -> Option<&String> {
+    //     self.x1.as_ref().and_then(|x1_key| x1_key.interpretation.as_ref())
+    // }
+
+
+
+
+
+   
+
+
+
+
+
 
     pub fn get_z1(&self) -> Option<&String> {
         match self.z1.as_ref() {
@@ -263,60 +281,72 @@ impl Keys {
             }
         }
     }
-    pub fn set_x1(&mut self, value: String) {
+    pub fn set_x1(&mut self, interpretation: String) {
         let x1 = XKey {
-            value: Some(value),
+            interpretation: Some(interpretation),
             function_id: Some("purchase".to_string()),
         };
         self.x1 = Some(x1);
     }
-    pub fn set_x2(&mut self, value: String) {
+    pub fn set_x2(&mut self, interpretation: String) {
         let x2 = XKey {
-            value: Some(value),
+            interpretation: Some(interpretation),
             function_id: Some("recover".to_string()),
         };
         self.x2 = Some(x2);
     }
-    pub fn set_x3(&mut self, value: String) {
+    pub fn set_x3(&mut self, interpretation: String) {
         let x3 = XKey {
-            value: Some(value),
+            interpretation: Some(interpretation),
             function_id: Some("spend".to_string()),
         };
         self.x3 = Some(x3);
     }
-    pub fn set_x4(&mut self, value: String) {
+    pub fn set_x4(&mut self, interpretation: String) {
         let x4 = XKey {
-            value: Some(value),
+            interpretation: Some(interpretation),
             function_id: Some("transfer".to_string()),
         };
         self.x4 = Some(x4);
     }
-    pub fn set_x5(&mut self, value: String) {
+    pub fn set_x5(&mut self, interpretation: String) {
         let x5 = XKey {
-            value: Some(value),
+            interpretation: Some(interpretation),
             function_id: Some("send".to_string()),
         };
         self.x5 = Some(x5);
     }
+    pub fn set_s(&mut self, hash: String) {
+        // should be used in aes.rs
+        let s = SKey {
+            hash: Some(hash),
+            s_key: Some("Secret Interpretation".to_string()),
+        };
+        self.s = Some(s);
+    }
 
     pub fn get_x1(&self) -> Option<&String> {
-        self.x1.as_ref().and_then(|x1_key| x1_key.value.as_ref())
+        self.x1.as_ref().and_then(|x1_key| x1_key.interpretation.as_ref())
+    }
+
+    pub fn get_s(&self) -> Option<&String> {
+        self.s.as_ref().and_then(|s_key| s_key.hash.as_ref())
     }
 
     pub fn get_x2(&self) -> Option<&String> {
-        self.x2.as_ref().and_then(|x2_key| x2_key.value.as_ref())
+        self.x2.as_ref().and_then(|x2_key| x2_key.interpretation.as_ref())
     }
 
     pub fn get_x3(&self) -> Option<&String> {
-        self.x3.as_ref().and_then(|x3_key| x3_key.value.as_ref())
+        self.x3.as_ref().and_then(|x3_key| x3_key.interpretation.as_ref())
     }
 
     pub fn get_x4(&self) -> Option<&String> {
-        self.x4.as_ref().and_then(|x4_key| x4_key.value.as_ref())
+        self.x4.as_ref().and_then(|x4_key| x4_key.interpretation.as_ref())
     }
 
     pub fn get_x5(&self) -> Option<&String> {
-        self.x5.as_ref().and_then(|x5_key| x5_key.value.as_ref())
+        self.x5.as_ref().and_then(|x5_key| x5_key.interpretation.as_ref())
     }
 }
 // pub fn get_e(&self) -> Option<&String> {
