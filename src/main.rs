@@ -4,6 +4,7 @@ mod stored_procedure;
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::{AccountQuery, Keys};
 use crate::stored_procedure::record::Record;
+use webbrowser;
 //use aes::Aes256;
 #[allow(unused_imports)]
 use base64::{
@@ -510,6 +511,7 @@ fn process_and_set_x_for_z(keys: &mut Keys, hmac_hex_2: &str, z_key_number: u32)
     };
 }
 
+
 fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     // Read the record.json file
     let data = fs::read_to_string("record.json")?;
@@ -529,29 +531,52 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Format the extracted data for better presentation
+    // Format the extracted data for better presentation in HTML
     let mut output = String::new();
+    output.push_str("<!DOCTYPE html><html><head><title>Interpretations</title><script>\
+    function copyToClipboard(elementId) {\
+        var aux = document.createElement('input');\
+        aux.setAttribute('value', document.getElementById(elementId).innerText);\
+        document.body.appendChild(aux);\
+        aux.select();\
+        document.execCommand('copy');\
+        document.body.removeChild(aux);\
+    }\
+    </script></head><body>");
     for (key, value) in extracted_data.iter() {
-        output.push_str(&format!("Key: {}\n", key));
+        output.push_str(&format!("<h2 style='color: blue;'>Key: {}</h2>", key));
         if let Value::Object(ref obj) = value {
             for (sub_key, sub_value) in obj.iter() {
-                output.push_str(&format!("  {}: {}\n", sub_key, sub_value));
+                let element_id = format!("{}_{}", key, sub_key);
+                if sub_key == "hash" || sub_key == "interpretation" {
+                    output.push_str(&format!("<p><strong style='color: green;'>{}:</strong> \"<span id='{}'>{}</span>\" <button onclick='copyToClipboard(\"{}\")'>Copy</button></p>", sub_key, &element_id, sub_value.as_str().unwrap_or_default(), &element_id));
+                } else {
+                    output.push_str(&format!("<p><strong style='color: green;'>{}:</strong> {}</p>", sub_key, sub_value));
+                }
             }
         }
-        output.push_str("\n");
     }
+    output.push_str("</body></html>");
 
     // Get the desktop path using the dirs crate
     let mut desktop_path = dirs::desktop_dir().unwrap_or(PathBuf::from("."));
-    desktop_path.push("interpretations.txt");
+    desktop_path.push("interpretations.html");
 
-    // Write the formatted data to interpretations.txt on the desktop
-    fs::write(desktop_path, output)?;
+    // Write the formatted data to interpretations.html on the desktop
+    fs::write(desktop_path.clone(), output)?;
 
-    println!("Data has been written to interpretations.txt on your desktop!");
+    // Open the HTML file in the default web browser
+    webbrowser::open(desktop_path.to_str().unwrap())?;
+
+    println!("Data has been written to interpretations.html on your desktop and opened in your default browser!");
 
     Ok(())
 }
+
+
+
+
+
 
 // fn create_interpretations_file() -> Result<(), Box<dyn std::error::Error>> {
 //     // 1. Read the record.json file
