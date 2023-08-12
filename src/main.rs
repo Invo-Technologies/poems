@@ -474,7 +474,7 @@ impl fmt::Display for AesError {
 }
 
 // aes decrypt the ciphertext string back to the original input value.
-
+// in bip39, generate_and_set_z_keys will use RPC to call the Aleo Record to collect Z first, and await to set z.
 fn process_and_set_x_for_z(
     keys: &mut Keys,
     hmac_hex_2: &str,
