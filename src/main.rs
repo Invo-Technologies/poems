@@ -1,11 +1,5 @@
-#[allow(unused_imports)]
-mod generation_procedure;
-mod stored_procedure;
-use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
-use crate::stored_procedure::keys::{AccountQuery, Keys};
-use crate::stored_procedure::record::Record;
-use webbrowser;
-//use aes::Aes256;
+/* Other Possible Dependencies to try
+use aes::Aes256;
 #[allow(unused_imports)]
 use base64::{
     alphabet,
@@ -18,7 +12,16 @@ use bip39::Mnemonic;
 use block_modes::{BlockMode, Cbc};
 #[allow(unused_imports)]
 use block_padding::Pkcs7;
-// use cbc::{Decryptor, Encryptor};
+use cbc::{Decryptor, Encryptor};
+*/
+
+mod generation_procedure;
+mod stored_procedure;
+use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
+use crate::stored_procedure::keys::{AccountQuery, Keys};
+use crate::stored_procedure::record::Record;
+use webbrowser;
+
 use async_std::task;
 use colored::*;
 use data_encoding::BASE64_NOPAD;
@@ -31,7 +34,6 @@ use generation_procedure::sha256;
 use dirs;
 use hkdf::Hkdf;
 use sha2::{Digest, Sha256};
-#[allow(unused_imports)]
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -40,106 +42,6 @@ extern crate rsa;
 use serde_json::{Map, Value};
 use std::fs::File;
 use std::io::prelude::*;
-
-fn read_json_value(filename: &str, key: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut file = File::open(filename)?;
-    let mut data = String::new();
-    file.read_to_string(&mut data)?;
-
-    let v: Value = serde_json::from_str(&data)?;
-    Ok(v["keys"][key]
-        .as_str()
-        .unwrap()
-        .replace("\"", "")
-        .to_string())
-}
-
-// fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
-//     let mut input = String::from(default);
-//     loop {
-//         print!("{} [{}]: ", prompt, default);
-//         io::stdout().flush().unwrap();
-//         io::stdin().read_line(&mut input).unwrap();
-//         input = input.trim().to_string();
-//         if !input.is_empty() {
-//             return input;
-//         }
-//         println!(
-//             "{}",
-//             "You must enter a non-empty value. Please try again.".red()
-//         );
-//     }
-// }
-
-fn read_nonempty_string_from_user(prompt: &str) -> String {
-    let mut input = String::new();
-    loop {
-        print!("{}", prompt);
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut input).unwrap();
-        input = input.trim().to_string();
-        if !input.is_empty() {
-            return input;
-        }
-        println!(
-            "{}",
-            "You must enter a non-empty value. Please try again.".red()
-        );
-    }
-}
-
-fn prompt_for_integer(prompt: &str) -> String {
-    let mut input = String::new();
-    loop {
-        print!("{}", prompt);
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut input).unwrap();
-        if let Ok(_) = input.trim().parse::<i32>() {
-            return input.trim().to_string();
-        }
-        println!(
-            "{}",
-            "You must enter a valid integer. Please try again.".red()
-        );
-        input.clear(); // Clear the input buffer to accept a new value in the next iteration
-    }
-}
-fn update_record_and_pause(keys: &Keys, account_query: &AccountQuery) {
-    let record_instance = Record::new(keys.clone(), account_query.clone());
-    record_instance.update_json();
-    println!("Record updated in record.json");
-    task::block_on(short_delay());
-}
-
-fn process_and_encrypt(
-    input_bytes: &[u8],
-    secret_bytes: &[u8],
-    encrypt_fn: fn(&[u8], &[u8]) -> Vec<u8>,
-    message: &str,
-) -> String {
-    // Create a SHA-256 hash from the secret bytes
-    let mut hasher = Sha256::new();
-    hasher.update(secret_bytes);
-    let hash = hasher.finalize();
-
-    // Derive a 256-bit key from the hash
-    let hkdf = Hkdf::<Sha256>::new(None, &hash);
-    let mut key = [0u8; 32];
-    hkdf.expand(&[], &mut key).expect("Failed to generate key");
-
-    // Encrypt using the provided function
-    let ciphertext = encrypt_fn(input_bytes, &key);
-    let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
-
-    // Print the result
-    println!("\n {}: {}", message, &ciphertext_base64);
-
-    ciphertext_base64
-}
-
-async fn short_delay() {
-    task::sleep(std::time::Duration::from_secs(1)).await;
-}
 
 #[warn(non_snake_case)]
 fn main() {
@@ -284,20 +186,21 @@ fn main() {
     for i in 1..=5 {
         process_and_set_x_for_z(&mut keys, &hmac_hex_2, i);
     }
-    // let x_input = keys.get_z1();
-    // let new_ziffie = x_input.unwrap().replace("\"", "");
-    // let ziffie_bytes = new_ziffie.trim().as_bytes();
+    /*
+    let x_input = keys.get_z1();
+    let new_ziffie = x_input.unwrap().replace("\"", "");
+    let ziffie_bytes = new_ziffie.trim().as_bytes();
 
-    // let x_secret_bytes = hmac_hex_2.trim().as_bytes();
+    let x_secret_bytes = hmac_hex_2.trim().as_bytes();
 
-    // let x_key_ciphertext_base64 = process_and_encrypt(
-    //     ziffie_bytes,
-    //     x_secret_bytes,
-    //     invo_aes_x_encrypt,
-    //     "X Key Ciphertext",
-    // );
-    // keys.set_x1(x_key_ciphertext_base64);
-
+    let x_key_ciphertext_base64 = process_and_encrypt(
+        ziffie_bytes,
+        x_secret_bytes,
+        invo_aes_x_encrypt,
+        "X Key Ciphertext",
+    );
+    keys.set_x1(x_key_ciphertext_base64);
+    */
     println!("\n");
     update_record_and_pause(&keys, &query);
     println!("\n");
@@ -511,7 +414,6 @@ fn process_and_set_x_for_z(keys: &mut Keys, hmac_hex_2: &str, z_key_number: u32)
     };
 }
 
-
 fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     // Read the record.json file
     let data = fs::read_to_string("record.json")?;
@@ -533,7 +435,8 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
 
     // Format the extracted data for better presentation in HTML
     let mut output = String::new();
-    output.push_str("<!DOCTYPE html><html><head><title>Interpretations</title><script>\
+    output.push_str(
+        "<!DOCTYPE html><html><head><title>Interpretations</title><script>\
     function copyToClipboard(elementId) {\
         var aux = document.createElement('input');\
         aux.setAttribute('value', document.getElementById(elementId).innerText);\
@@ -542,7 +445,8 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
         document.execCommand('copy');\
         document.body.removeChild(aux);\
     }\
-    </script></head><body>");
+    </script></head><body>",
+    );
     for (key, value) in extracted_data.iter() {
         output.push_str(&format!("<h2 style='color: blue;'>Key: {}</h2>", key));
         if let Value::Object(ref obj) = value {
@@ -551,7 +455,10 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
                 if sub_key == "hash" || sub_key == "interpretation" {
                     output.push_str(&format!("<p><strong style='color: green;'>{}:</strong> \"<span id='{}'>{}</span>\" <button onclick='copyToClipboard(\"{}\")'>Copy</button></p>", sub_key, &element_id, sub_value.as_str().unwrap_or_default(), &element_id));
                 } else {
-                    output.push_str(&format!("<p><strong style='color: green;'>{}:</strong> {}</p>", sub_key, sub_value));
+                    output.push_str(&format!(
+                        "<p><strong style='color: green;'>{}:</strong> {}</p>",
+                        sub_key, sub_value
+                    ));
                 }
             }
         }
@@ -573,36 +480,135 @@ fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn read_json_value(filename: &str, key: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut file = File::open(filename)?;
+    let mut data = String::new();
+    file.read_to_string(&mut data)?;
 
+    let v: Value = serde_json::from_str(&data)?;
+    Ok(v["keys"][key]
+        .as_str()
+        .unwrap()
+        .replace("\"", "")
+        .to_string())
+}
 
+/*
+fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
+    let mut input = String::from(default);
+    loop {
+        print!("{} [{}]: ", prompt, default);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut input).unwrap();
+        input = input.trim().to_string();
+        if !input.is_empty() {
+            return input;
+        }
+        println!(
+            "{}",
+            "You must enter a non-empty value. Please try again.".red()
+        );
+    }
+}
+*/
 
+fn read_nonempty_string_from_user(prompt: &str) -> String {
+    let mut input = String::new();
+    loop {
+        print!("{}", prompt);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut input).unwrap();
+        input = input.trim().to_string();
+        if !input.is_empty() {
+            return input;
+        }
+        println!(
+            "{}",
+            "You must enter a non-empty value. Please try again.".red()
+        );
+    }
+}
 
+fn prompt_for_integer(prompt: &str) -> String {
+    let mut input = String::new();
+    loop {
+        print!("{}", prompt);
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut input).unwrap();
+        if let Ok(_) = input.trim().parse::<i32>() {
+            return input.trim().to_string();
+        }
+        println!(
+            "{}",
+            "You must enter a valid integer. Please try again.".red()
+        );
+        input.clear(); // Clear the input buffer to accept a new value in the next iteration
+    }
+}
+fn update_record_and_pause(keys: &Keys, account_query: &AccountQuery) {
+    let record_instance = Record::new(keys.clone(), account_query.clone());
+    record_instance.update_json();
+    println!("Record updated in record.json");
+    task::block_on(short_delay());
+}
 
-// fn create_interpretations_file() -> Result<(), Box<dyn std::error::Error>> {
-//     // 1. Read the record.json file
-//     let data = fs::read_to_string("record.json")?;
-//     let json_data: Value = serde_json::from_str(&data)?;
+fn process_and_encrypt(
+    input_bytes: &[u8],
+    secret_bytes: &[u8],
+    encrypt_fn: fn(&[u8], &[u8]) -> Vec<u8>,
+    message: &str,
+) -> String {
+    // Create a SHA-256 hash from the secret bytes
+    let mut hasher = Sha256::new();
+    hasher.update(secret_bytes);
+    let hash = hasher.finalize();
 
-//     // 2. Extract the required values
-//     let s_value = json_data["keys"]["s"].as_str().unwrap_or_default();
-//     let x_values: Vec<String> = (1..=5)
-//         .map(|i| {
-//             let key = format!("x{}", i);
-//             json_data["keys"][&key]["value"].as_str().unwrap_or_default().to_string()
-//         })
-//         .collect();
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32];
+    hkdf.expand(&[], &mut key).expect("Failed to generate key");
 
-//     // 3. Write these values to a new file named "interpretations.txt" on your desktop
-//     let desktop_path = dirs::desktop_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
-//     let output_path = desktop_path.join("interpretations.txt");
-//     let mut content = s_value.to_string();
-//     for x in x_values {
-//         content.push_str("\n");
-//         content.push_str(&x);
-//     }
-//     fs::write(output_path, content)?;
+    // Encrypt using the provided function
+    let ciphertext = encrypt_fn(input_bytes, &key);
+    let ciphertext_base64 = BASE64_NOPAD.encode(&ciphertext);
 
-//     println!("File created successfully on the desktop!");
+    // Print the result
+    println!("\n {}: {}", message, &ciphertext_base64);
 
-//     Ok(())
-// }
+    ciphertext_base64
+}
+
+async fn short_delay() {
+    task::sleep(std::time::Duration::from_secs(1)).await;
+}
+
+/*
+fn create_interpretations_file() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Read the record.json file
+    let data = fs::read_to_string("record.json")?;
+    let json_data: Value = serde_json::from_str(&data)?;
+
+    // 2. Extract the required values
+    let s_value = json_data["keys"]["s"].as_str().unwrap_or_default();
+    let x_values: Vec<String> = (1..=5)
+        .map(|i| {
+            let key = format!("x{}", i);
+            json_data["keys"][&key]["value"].as_str().unwrap_or_default().to_string()
+        })
+        .collect();
+
+    // 3. Write these values to a new file named "interpretations.txt" on your desktop
+    let desktop_path = dirs::desktop_dir().unwrap_or_else(|| Path::new(".").to_path_buf());
+    let output_path = desktop_path.join("interpretations.txt");
+    let mut content = s_value.to_string();
+    for x in x_values {
+        content.push_str("\n");
+        content.push_str(&x);
+    }
+    fs::write(output_path, content)?;
+
+    println!("File created successfully on the desktop!");
+
+    Ok(())
+}
+*/
