@@ -7,34 +7,76 @@ use bip39::{Error, Mnemonic}; // Library to work with BIP39 mnemonic.
 #[allow(unused_imports)]
 use hex::*; // Library for hexadecimal related operations.
 use rand::Rng; // Library for random number generation.
+use std::process::Command;
 
 //this function needs to be rewritten to set the value of z, after using rpc call instead of generating the keys here.
+
+
+
+pub fn generate_aleo_address() -> Result<String, &'static str> {
+    // Execute the `aleo account new` command
+    let output = Command::new("aleo")
+        .arg("account")
+        .arg("new")
+        .output()
+        .expect("Failed to execute aleo command");
+
+    // Convert the output to a string
+    let output_str = String::from_utf8_lossy(&output.stdout);
+
+    // Search for the line that starts with "Address"
+    for line in output_str.lines() {
+        if line.starts_with(" Address") {
+            // Split the line by whitespace and collect the parts into a vector
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            // Return the Aleo address (should be the second part)
+            return Ok(parts[1].to_string());
+        }
+    }
+
+    Err("Failed to find Aleo address in the output")
+}
+
 pub fn generate_and_set_z_keys(keys: &mut Keys) {
     let mut rng = rand::thread_rng(); // Thread-local random number generator.
 
-    // Generate 256 random bytes 5 times and set z keys.
     for i in 0..5 {
-        let mut entropy = vec![]; // Vector to hold the entropy.
-
-        // Generate 256 random bytes.
-        for _ in 0..256 {
-            let byte = rng.gen::<u8>(); // Generate a random byte.
-            entropy.push(byte); // Add the byte to the entropy vector.
-        }
-
-        let entropy_hex = hex::encode(&entropy);
-
-        // Set the z-keys based on generated entropy
         match i {
-            0 => keys.set_z1(entropy_hex),
-            1 => keys.set_z2(entropy_hex),
-            2 => keys.set_z3(entropy_hex),
-            3 => keys.set_z4(entropy_hex),
-            4 => keys.set_z5(entropy_hex),
-            _ => unreachable!(), // this branch should never be reached
+            0..=2 => {
+                let random_number = rng.gen_range(1..=9).to_string();
+                let random_string: String = (0..63)
+                    .map(|_| rng.gen_range(0..=9).to_string())
+                    .collect();
+                let key = format!("{}{}field", random_number, random_string);
+                match i {
+                    0 => keys.set_z1(key),
+                    1 => keys.set_z2(key),
+                    2 => keys.set_z3(key),
+                    _ => unreachable!(),
+                }
+            }
+            3 => {
+                if let Ok(aleo_address) = generate_aleo_address() {
+                    keys.set_z4(aleo_address);
+                } else {
+                    println!("Failed to generate Aleo address");
+                }
+            }
+            4 => {
+                let random_number = rng.gen_range(1..=9).to_string();
+                let random_string: String = (0..63)
+                    .map(|_| rng.gen_range(0..=9).to_string())
+                    .collect();
+                let key = format!("{}{}scalar", random_number, random_string);
+                keys.set_z5(key);
+            }
+            _ => unreachable!(),
         }
     }
 }
+
+
+
 
 // This function generates a random entropy of 256 bits (or 32 bytes).
 // This entropy will be used to generate a BIP39 mnemonic.
