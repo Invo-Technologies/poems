@@ -14,12 +14,12 @@ lazy_static! {
     pub static ref ACCOUNTQUERY: Mutex<AccountQuery> = Mutex::new(AccountQuery::new());
 }
 #[derive(Serialize, Deserialize, Default, Clone)]
-struct XKey {
+pub struct XKey {
     interpretation: Option<String>,
     function_id: Option<String>,
 }
 #[derive(Serialize, Deserialize, Default, Clone)]
-struct SKey {
+pub struct SKey {
     hash: Option<String>,
     s_key: Option<String>,
 }
@@ -32,6 +32,15 @@ pub struct QueryStruct {
 pub struct AleoStruct {
     aleo_value: Option<String>,
     tableset_value: Option<String>,
+}
+#[derive(Serialize, Deserialize, Clone)]
+pub struct BlindAssetRecord {
+    // The viewing key is a large String that can be changed.
+    pub viewing_key: Option<String>,
+    // The function_ids field is a map that associates each "z" with a function name.
+    // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
+    // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
+    pub function_ids: Option<HashMap<String, String>>,
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
@@ -425,11 +434,12 @@ impl AccountQuery {
         self.gamertag = Some(gamertag);
     }
 
+    // add this once public keys are introduced by substrate
     // pub fn set_public_key(&mut self, public_key: String) {
     //     self.public_key = Some(public_key);
     // }
 
-    //fix thhis shit
+    
 
     // Getters
     pub fn get_node_id(&self) -> Option<&String> {
@@ -490,55 +500,3 @@ impl AccountQuery {
     //     self.public_key.as_ref()
     // }
 }
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct BlindAssetRecord {
-    // The viewing key is a large String that can be changed.
-    pub viewing_key: Option<String>,
-    // The function_ids field is a map that associates each "z" with a function name.
-    // Here "z" is a placeholder for a unique identifier, such as "z1", "z2", etc.
-    // These "z" identifiers will be associated with various function names like "purchase", "recover", etc.
-    pub function_ids: Option<HashMap<String, String>>,
-}
-
-/*
-#[allow(dead_code)] //remove for testing table_values
-impl BlindAssetRecord {
-    // The constructor function for BlindAssetRecord.
-    // It creates a new BlindAssetRecord with no viewing_key and an empty map of function_ids.
-    pub fn new() -> Self {
-        Self {
-            viewing_key: None,
-            function_ids: Some(HashMap::new()),
-        }
-    }
-
-    pub fn set_viewing_key(&mut self, viewing_key: String) {
-        self.viewing_key = Some(viewing_key); // custom viewkey key
-    }
-
-    // This function allows us to associate a "z" identifier with a function name.
-    // The function name is passed as a String.
-    pub fn set_function_id(&mut self, id: String, function_name: String) {
-        if let Some(ids) = &mut self.function_ids {
-            ids.insert(id, function_name);
-        }
-    }
-    pub fn get_function_name(&self, id: &str) -> Option<&String> {
-        match &self.function_ids {
-            Some(ids) => ids.get(id),
-            None => None,
-        }
-    }
-    // - viewing Key
-    // - function_ids
-    // -- z1 = purchase = "bind_id"
-    // -- z2 = recover = "bind_id"
-    // -- z3 = spend = "bind_id"
-    // -- z4 = transfer = "bind_id"
-    // -- z5 = send = "bind_id"
-
-    // - Aleo Program Secrets
-    // -- z = { seed, sha256, game_id, pool_id, [function_id: string]} // String is exit or transfer or swap
-}
-*/
