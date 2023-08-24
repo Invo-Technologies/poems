@@ -65,6 +65,7 @@ pub struct AccountQuery {
     account_id: Option<AleoStruct>,
     gamertag: Option<QueryStruct>,
     public_key: Option<QueryStruct>,
+    txid: Option<AleoStruct>,
 }
 
 #[allow(dead_code)] // remove for testing function_ids
@@ -407,6 +408,14 @@ impl AccountQuery {
         };
         self.account_id = Some(account_id);
     }
+    //txid: Option<AleoStruct>,
+    pub fn set_txid(&mut self, aleo_value: String) {
+        let txid = AleoStruct {
+            tableset_value: Some("Transaction ID".to_string()),
+            aleo_value: Some(aleo_value),
+        };
+        self.txid = Some(txid);
+    }
 
     pub fn set_gamertag(&mut self, query_value: String) {
         let gamertag = QueryStruct {
@@ -457,6 +466,12 @@ impl AccountQuery {
         self.asset_id
             .as_ref()
             .and_then(|asset_key| asset_key.aleo_value.as_ref())
+    }
+
+    pub fn get_txid(&self) -> Option<&String> {
+        self.txid
+            .as_ref()
+            .and_then(|transaction_id| transaction_id.aleo_value.as_ref())
     }
 
     pub fn get_account_id(&self) -> Option<&String> {

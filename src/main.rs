@@ -40,8 +40,12 @@ use std::path::PathBuf;
 extern crate rand;
 extern crate rsa;
 use serde_json::{Map, Value};
+use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::process::Command;
+use std::thread::sleep;
+use std::time::Duration;
 
 #[warn(non_snake_case)]
 fn main() {
@@ -49,6 +53,7 @@ fn main() {
         "{}",
         "\n================================================================= Game Developer's Account Query Program =================================================================\n".green()
     );
+    dotenv::from_path(".env").expect("Failed to load .env file");
     let mut keys = Keys::new();
     let mut query = AccountQuery::new();
     Record::init_json();
@@ -182,10 +187,34 @@ fn main() {
     println!("\n");
 
     //--------------------------------------------------------------------------------------------------------------------------------
+    println!("this is before x is set");
+    let z1 = &keys.get_z1().unwrap();
+    println!("{}", &z1);
+    let z2 = &keys.get_z2().unwrap();
+    println!("{}", &z2);
+    let z3 = &keys.get_z3().unwrap();
+    println!("{}", &z3);
+    let z5 = &keys.get_z5().unwrap();
+    println!("{}", &z5);
+
+    // 2. Pass these values to the execute_aleo_command function
+    if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5, &mut query ) {
+        println!("Transaction ID: {}", tx_id);
+        query.set_txid(tx_id); // Set the transaction ID using the provided function
+        
+    } else {
+        println!("Failed to retrieve Transaction ID");
+    }
+
+    sleep(Duration::from_secs(1));
 
     for i in 1..=5 {
         process_and_set_x_for_z(&mut keys, &hmac_hex_2, i);
     }
+    println!("this is after x is set");
+    println!("\n");
+    update_record_and_pause(&keys, &query);
+    println!("\n");
     /*
     let x_input = keys.get_z1();
     let new_ziffie = x_input.unwrap().replace("\"", "");
@@ -295,30 +324,6 @@ fn main() {
     }
 }
 
-fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
-    // Generate a hash from the password
-    let mut hasher = Sha256::new();
-    hasher.update(secret);
-    let hash = hasher.finalize();
-
-    // Derive a 256-bit key from the hash
-    let hkdf = Hkdf::<Sha256>::new(None, &hash);
-    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
-    hkdf.expand(&[], &mut key)
-        .map_err(|_| CustomError::HkdfError)?;
-
-    // Decode the base64 ciphertext
-    let ciphertext_decoded = BASE64_NOPAD
-        .decode(ciphertext_base64.as_bytes())
-        .map_err(CustomError::Base64Error)?;
-
-    // Decrypt the text
-    let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
-
-    // Convert the decrypted bytes to a String
-    Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
-}
-
 #[derive(Debug)]
 enum CustomError {
     HkdfError,
@@ -381,9 +386,129 @@ impl fmt::Display for AesError {
     }
 }
 
+fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
+    // Generate a hash from the password
+    let mut hasher = Sha256::new();
+    hasher.update(secret);
+    let hash = hasher.finalize();
+
+    // Derive a 256-bit key from the hash
+    let hkdf = Hkdf::<Sha256>::new(None, &hash);
+    let mut key = [0u8; 32]; // AES256 requires a 32-byte key
+    hkdf.expand(&[], &mut key)
+        .map_err(|_| CustomError::HkdfError)?;
+
+    // Decode the base64 ciphertext
+    let ciphertext_decoded = BASE64_NOPAD
+        .decode(ciphertext_base64.as_bytes())
+        .map_err(CustomError::Base64Error)?;
+
+    // Decrypt the text
+    let decrypted = invo_aes_decrypt(&ciphertext_decoded, &key).map_err(CustomError::AesError)?;
+
+    // Convert the decrypted bytes to a String
+    Ok(String::from_utf8(decrypted).map_err(CustomError::Utf8Error)?)
+}
+
+fn execute_aleo_command(z1: &str, z2: &str, z3: &str, z5: &str, query: &mut AccountQuery) -> Option<String> {
+    // Load values from .env
+    let appname = env::var("APPNAME").expect("APPNAME not set in .env");
+    let function = env::var("FUNCTION").expect("FUNCTION not set in .env");
+    let private_key = env::var("PRIVATE_KEY").expect("PRIVATE_KEY not set in .env");
+    let fee = env::var("FEE").expect("FEE not set in .env");
+
+    // Construct the command
+    let output = Command::new("aleo")
+    .arg("execute")
+    .arg(&appname)
+    .arg(&function)
+    .arg(z1)
+    .arg(z2)
+    .arg(z3)
+    .arg(z5)
+    .arg("--private-key")
+    .arg(&private_key)
+    .arg("--fee")
+    .arg(&fee)
+    .output()
+    .expect("Failed to execute aleo command");
+
+// Convert the output bytes to a string
+let output_str = String::from_utf8_lossy(&output.stdout);
+
+// Split the string by lines and find the line that starts with "Transaction ID:"
+let mut lines = output_str.lines();
+while let Some(line) = lines.next() {
+    if line.trim() == "Transaction ID:" {
+        if let Some(tx_id_line) = lines.next() {
+            // Extract the ID from the line (removing quotes)
+            let tx_id = tx_id_line.trim().trim_matches('"').to_string();
+            return Some(tx_id);
+        }
+    }
+}
+
+None
+}
+
 // aes decrypt the ciphertext string back to the original input value.
 // in bip39, generate_and_set_z_keys will use RPC to call the Aleo Record to collect Z first, and await to set z.
-fn process_and_set_x_for_z(keys: &mut Keys, hmac_hex_2: &str, z_key_number: u32) {
+fn process_and_set_x_for_z(
+    keys: &mut Keys,
+    hmac_hex_2: &str,
+    z_key_number: u32,
+) {
+    // STEP 1 --- the aleo execution should happen here where it gets the current values of z's, and then executes the command.
+
+    /* EXAMPLE
+                aleo execute "poems1hfl83.aleo" "interpretations" \ //get from the .env file
+            "5170387368223417607202683719077653862118316485512901608078405487field" \
+            "5295535237488473848604476930794771815781678850118056845363021389field" \
+            "3686661079873492149873788199543768715028245345257917995185050166field" \
+            "8128048488849622938199776522377969295961818591889461507232331453scalar" \
+            --private-key "APrivateKey1zkp2Q3VWwLuWJ2eZbCJN2TLTTecXgB1mDHt7nUZ9NQpqiF5" \ get from the .env file
+            --fee 1
+    ````    after execution it needs to wait until it see's "Transaction ID: and granb the identity"
+            ✅ Execute Transaction successfully posted to https://vm.aleo.org/api
+            ✅ Execution of function "interpretations" from program poems1mxydh.aleo' broadcast successfully
+            Execution of function interpretations from poems1mxydh.aleo successful!
+            Transaction ID:
+            "at1r7fsfghjpn2hyns9cltfgy700yy0y7rzfvdcjdv4cqehe72wmcrqpm4q95"
+         */
+    // 1. Manually get the values for z1, z2, z3, and z5
+    // let z1 = &keys.get_z1().unwrap();
+    // println!("{}", &z1);
+    // let z2 = &keys.get_z2().unwrap();
+    // println!("{}", &z2);
+    // let z3 = &keys.get_z3().unwrap();
+    // println!("{}", &z3);
+    // let z5 = &keys.get_z5().unwrap();
+    // println!("{}", &z5);
+
+    // // 2. Pass these values to the execute_aleo_command function
+    // if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5) {
+    //     println!("Transaction ID: {}", tx_id);
+    //     query.set_txid(tx_id); // Set the transaction ID using the provided function
+        
+    // } else {
+    //     println!("Failed to retrieve Transaction ID");
+    // }
+
+    // sleep(Duration::from_secs(1));
+    
+
+    // STEP 2 --- it needs to wait for the txid, and then use the internet to get the execution record cipher.
+    // * https://vm.aleo.org/api/testnet3/transaction/at1sm9amjpervlff5dpstlhdwxn0cp8yv3h3rm0ffdyttvugzqjrq8ssk4h6l
+
+    // step 2.5 --- I then need to set that record cipher as record cipher in keys.storage.
+    // object/execution/transitions/outputs/value
+    /*
+    record1qyqsqcvd4cz909fujrh8rsv5feswymfpycdklpprfv7p49ww5t6zv6qrp5rkzurfta4k272rqqpqyqpg4t68nnzxuy0muzllqtyefxe00yrk0f5x86nc3h6haz5p74f5z8et8hre9juumazc0fxj5slfwmld34s3t34f92rf0609zts48uuqvpmwdajx2hmfv3psqqszqza362jmhtvzmguwptkea9hvyp05678gayk72a7gqmwml02ckg8sf7mfjp92g35lr5gauu6hr6qh2z4j4epj2ztjxsjt82a6zdamnpcpqankzmt9ta5kgscqqgpqpcw03dqt0ysrddu3zn5hluvm7dyvqlqjcxzsrtk9lwdahfkknwqq4p3hzxrkxzfx8244epvlhaydh4k46yad703qme8pf5t5aq5czsyqwur0dak976tygvqqyqsq78hhqq6vxnd9rrpx737gxnsmc62k2ucm0f6xa4ycrdvd2k52xuqzp9weczqcy9jt676d5k4te9v5f5x0hmt36e7w96cqzmau6zvvkzs2v93kxmm4de6976tygvqqyqsq67a2du0upaqgweqtt9ks6r4yhzlak2ae0h2kktz2um683msthvyp3urp49wr0js5cnsdawxxt2slr6tc6wntvxeaexlnt4ajfgktjzcgv9ehxet5ta5kgscqqgpqp4gavk6su380cxknzrs8x774q5vdjw5q3tlayqpfacuz9ssx32cz59kgpqg6dkwu7x8wq033fdxcpfuxrn4nsc7jr4f5l2m53k38y5zqkerfvenxje2lddjhjv2rqqpqyqqwxmumx6p0jx0ny6dpqu6jwpddt9h0rkztdmmmryjzp4cease0p43864kxh0mstkx3g52ew7y5u8ydggaqaaddkf5grd84yytpg9lqgzmyd9nxv6t9ta4k27fjgvqqyqsqq7pm4qv930fvmmnqyls54tzd0uf4l5p5hdpuh67krwrsr9jy5sq5raavl80vvd0t658udtmk6psfpxpe8fmr3v6946l7q0t3cm8fkqqz0gc5xqqzqgqv6d2rnmrl4l4t8mxglwjlhqst64dj0p8a8p3qx8rwzee9tsvaqzlaffjdgq2eqfmkqtq5l3csh0yczyy7dw68nhjn2zaqxy9pahp4pqp85vjrqqpqyqq4qxr292nwwhvu6xsvd88pzner330z8v5mcs9y7zjhl2lt9tpnp0a2a9t33hzajvadvkpu3z594spkwtp8fcvamdwk7xey29ed5qsqqqn6xdpsqqszqzvxv8qzkmempy6gt28ye2vr5cnw8xva3xm7cp8z58kejwf6xm5qfzav46zdxv8e9vzvt6su09d5ru60duz3g56pj96d5kteduw8qnsvqfargscqqgpqqupju4x0qy9tqlka5cwczkyy2qsy9vs7l5ntfkl5cgkrdgqxsacftdg8df38kapjxstm3j7673qgglslg9lhd9e5pq6kpzamzkspv5zqy734gvqqyqsqj2ma53lz83g9f879zckvae5wfm06gk0z2v3qp3sae4ddgy0f3v9flclam2lx75fsxa75mg3p2lyxlwzz8r8adtvzqpup2v8jj3cd7pf5647yyyjmsf9t7kxj7f4pesqr3v00kdpty5hautsfed07uqweqsal88j6
+     */
+    // STEP 3 ---and then it needs to decrypt the record cipher with snark os command {record} {viewkey} from record.json
+    // snarkos developer decrypt --ciphertext "" --view-key "" // get view key from .env file
+    // STEP 4 ---and then I need to view the output in the terminal, and set the z keys again here, where in which the rest of this function continues.
+
     let z_input = match z_key_number {
         1 => keys.get_z1(),
         2 => keys.get_z2(),

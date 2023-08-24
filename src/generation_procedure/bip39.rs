@@ -11,8 +11,6 @@ use std::process::Command;
 
 //this function needs to be rewritten to set the value of z, after using rpc call instead of generating the keys here.
 
-
-
 pub fn generate_aleo_address() -> Result<String, &'static str> {
     // Execute the `aleo account new` command
     let output = Command::new("aleo")
@@ -44,9 +42,8 @@ pub fn generate_and_set_z_keys(keys: &mut Keys) {
         match i {
             0..=2 => {
                 let random_number = rng.gen_range(1..=9).to_string();
-                let random_string: String = (0..63)
-                    .map(|_| rng.gen_range(0..=9).to_string())
-                    .collect();
+                let random_string: String =
+                    (0..63).map(|_| rng.gen_range(0..=9).to_string()).collect();
                 let key = format!("{}{}field", random_number, random_string);
                 match i {
                     0 => keys.set_z1(key),
@@ -64,9 +61,8 @@ pub fn generate_and_set_z_keys(keys: &mut Keys) {
             }
             4 => {
                 let random_number = rng.gen_range(1..=9).to_string();
-                let random_string: String = (0..63)
-                    .map(|_| rng.gen_range(0..=9).to_string())
-                    .collect();
+                let random_string: String =
+                    (0..63).map(|_| rng.gen_range(0..=9).to_string()).collect();
                 let key = format!("{}{}scalar", random_number, random_string);
                 keys.set_z5(key);
             }
@@ -74,9 +70,6 @@ pub fn generate_and_set_z_keys(keys: &mut Keys) {
         }
     }
 }
-
-
-
 
 // This function generates a random entropy of 256 bits (or 32 bytes).
 // This entropy will be used to generate a BIP39 mnemonic.
