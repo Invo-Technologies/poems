@@ -439,8 +439,6 @@ impl AccountQuery {
     //     self.public_key = Some(public_key);
     // }
 
-    
-
     // Getters
     pub fn get_node_id(&self) -> Option<&String> {
         self.node_id

@@ -1,44 +1,66 @@
-mod generation_procedure;
-mod stored_procedure;
-use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
-use crate::stored_procedure::keys::{AccountQuery, Keys};
-use crate::stored_procedure::record::Record;
-use webbrowser;
-
+// External crates
+extern crate rand;
+extern crate rsa;
 use async_std::task;
 use colored::*;
 use data_encoding::BASE64_NOPAD;
+use dirs;
+use hkdf::Hkdf;
+use serde_json::{Map, Value};
+use sha2::{Digest, Sha256};
+use webbrowser;
+
+// Modules from the current crate
+mod generation_procedure;
+mod stored_procedure;
+
+// Items from those modules
+use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
+use crate::stored_procedure::keys::{AccountQuery, Keys};
+use crate::stored_procedure::record::Record;
 use generation_procedure::aes::{invo_aes_decrypt, invo_aes_encrypt};
 use generation_procedure::bip39::{
     generate_and_set_z_keys, generate_entropy, generate_mnemonic_and_seed,
 }; // hex_to_entropy, hex_to_bin,
 use generation_procedure::sha256;
-// use hex;
-use dirs;
-use hkdf::Hkdf;
-use sha2::{Digest, Sha256};
-use std::fs;
-use std::io::{self, Write};
-use std::path::PathBuf;
-extern crate rand;
-extern crate rsa;
-use serde_json::{Map, Value};
+
+// Standard library modules
 use std::env;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fmt;
+use std::fs::{self, File};
+use std::io::{self, prelude::*, Write}; //
+use std::path::PathBuf;
 use std::process::Command;
 use std::thread::sleep;
 use std::time::Duration;
 
+/// Introduces a short delay of 1 second.
 async fn short_delay() {
     task::sleep(std::time::Duration::from_secs(1)).await;
 }
+
+/// Updates the record in `record.json` and introduces a short pause after the update.
+///
+/// # Arguments
+///
+/// * `keys` - A reference to the `Keys` instance containing key-related data.
+/// * `account_query` - A reference to the `AccountQuery` instance containing account-related data.
 fn update_record_and_pause(keys: &Keys, account_query: &AccountQuery) {
     let record_instance = Record::new(keys.clone(), account_query.clone());
     record_instance.update_json();
     println!("Record updated in record.json");
     task::block_on(short_delay());
 }
+
+/// Prompts the user for an integer input and returns it as a `String`.
+///
+/// # Arguments
+///
+/// * `prompt` - The message to display to the user when asking for input.
+///
+/// # Returns
+///
+/// A `String` representation of the user's integer input.
 fn prompt_for_integer(prompt: &str) -> String {
     let mut input = String::new();
     loop {
@@ -62,20 +84,37 @@ fn main() {
         "{}",
         "\n================================================================= Game Developer's Account Query Program =================================================================\n".green()
     );
+    // Load environment variables from the `.env` file.
     dotenv::from_path(".env").expect("Failed to load .env file");
+
+    // Initialize a new instance of the `Keys` structure to store cryptographic keys.
     let mut keys = Keys::new();
+
+    // Initialize a new instance of the `AccountQuery` structure to store account-related data.
     let mut query = AccountQuery::new();
+
+    // Initialize a new JSON file to store the record data.
     Record::init_json();
 
+    // Prompt the user to enter their Gamer Tag.
     let gamer_tag = read_nonempty_string_from_user("\n Enter your Gamer Tag: ");
+
+    // Prompt the user to enter the name of their game's default currency.
     let default_currecy =
         read_nonempty_string_from_user("\n Enter the name of your Game's Default Currency: ");
+
+    // Prompt the user to enter the amount they wish to front-load into their game's economy.
     let load_balance = prompt_for_integer("\n How much will you front load into your economy?: ");
 
+    // Set the Gamer Tag in the `query` instance and update the record.
     query.set_gamertag(gamer_tag);
     update_record_and_pause(&keys, &query);
+
+    // Set the default currency in the `query` instance and update the record.
     query.set_default_currency(default_currecy);
     update_record_and_pause(&keys, &query);
+
+    // Set the load balance in the `query` instance and update the record.
     query.set_load_balance(load_balance);
     update_record_and_pause(&keys, &query);
 
@@ -84,25 +123,33 @@ fn main() {
         "{}",
         "\n================================================================= BIP39 Program =================================================================\n".green()
     );
+    // Display a link to a test program for the user.
     println!("\nTest program using this link: https://learnmeabitcoin.com/technical/mnemonic\n");
 
+    // Notify the user that an empty record.json has been initialized.
     println!("Create Empty record.json initialized.");
-    // Generate entropy for mnemonic using BIP39 standard and set in keys.rs.
+
+    // Generate entropy for the mnemonic using the BIP39 standard and store it in the `keys` instance.
     let entropy = generate_entropy(&mut keys);
 
-    println!("\n");
-    update_record_and_pause(&keys, &query);
-    println!("\n");
-    // Create a new Record instance with the updated Z keys
-    let _zgen = generate_and_set_z_keys(&mut keys);
+    // Update the record with the generated entropy and pause for a short duration.
     println!("\n");
     update_record_and_pause(&keys, &query);
     println!("\n");
 
-    // Generate a mnemonic from the entropy and set mnemonic and seed in keys.
+    // Generate and set Z keys (derived from the mnemonic) in the `keys` instance.
+    let _zgen = generate_and_set_z_keys(&mut keys);
+
+    // Update the record with the generated Z keys and pause for a short duration.
+    println!("\n");
+    update_record_and_pause(&keys, &query);
+    println!("\n");
+
+    // Generate a mnemonic phrase from the previously generated entropy and store the mnemonic and seed in the `keys` instance.
     match generate_mnemonic_and_seed(&mut keys, &entropy) {
         Ok(_) => (),
         Err(e) => {
+            // If there's an error during the mnemonic generation, display an error message.
             println!(
                 "{}",
                 "\n=== Error while generating mnemonic from entropy ===".red()
@@ -110,12 +157,12 @@ fn main() {
             eprintln!("{:?}", e);
         }
     };
-    print!("hello bro 2\n");
 
-    //original binary to entropy
+    // Retrieve the original binary entropy from the `keys` instance and print it.
     let entropy_hex = keys.get_e().map(|s| s.to_string()).unwrap_or_default();
     print!("line 95 main.rs __  {}\n", &entropy_hex);
 
+    // Update the record with the mnemonic and seed and pause for a short duration.
     println!("\n");
     update_record_and_pause(&keys, &query);
     println!("\n");
@@ -125,12 +172,17 @@ fn main() {
         "\n=============================================================== Account Keys ===========================================================\n".blue()
     );
 
+    // Generate RSA keys and store them in the `keys` instance.
     let _rsa_keys = generate_rsa_keys(&mut keys);
 
+    // Retrieve the public key (PK) from the `keys` instance.
     let pk_key = keys.get_pk();
+    // Remove any double quotes from the public key and convert it to a string.
     let new_pk_key = pk_key.unwrap().replace("\"", "").to_string();
 
+    // Retrieve the private key (P) from the `keys` instance.
     let p_key = keys.get_p();
+    // Remove any double quotes from the private key.
     let new_p_key = p_key.unwrap().replace("\"", "");
 
     println!(
@@ -146,23 +198,29 @@ fn main() {
         "\n========================================================== Start Sha256 Program ===========================================================\n".green()
     );
 
-    //the problem here is that the private key is too large to be decrypted back. test the sha256 to get the original input again once I use the private key as a default secret.
+    // Display a message to the user, suggesting a tool for HMAC generation testing.
     println!(
         "{}",
         "\nTest program using this link: https://it-tools.tech/hmac-generator\n".blue()
     );
 
+    // Retrieve the derived seed from the `keys` instance.
     let derived_seed = keys.get_d();
+    // Remove any double quotes from the derived seed and convert it to a string.
     let new_derived_seed = derived_seed.unwrap().replace("\"", "");
 
+    // Display a message indicating the combination of derived seed and private key to produce Y.
     println!("\nderived seed (m) + private key (pk)= Y\n");
 
+    // Generate an HMAC using the public key as the key and the derived seed as the data.
+    // This HMAC will be referred to as Y.
     let (_hmac_binary_2, hmac_hex_2) =
         sha256::generate_hmac(&new_pk_key.as_bytes(), &new_derived_seed.as_bytes());
 
-    //set Y keys.rs, and then use during decryption.
+    // Store the generated HMAC (Y) in the `keys` instance.
     keys.set_y(&hmac_hex_2);
 
+    // Update the record and introduce a short pause.
     println!("\n");
     update_record_and_pause(&keys, &query);
     println!("\n");
@@ -361,7 +419,7 @@ fn main() {
             }
         }
     }
-}
+} // --- make this portion continuous for use. -------------------------------------------------------------------------------------------------------------------------------- ENDING OF MAIN PROGRAM
 
 fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
     // Generate a hash from the password
@@ -546,7 +604,6 @@ fn read_json_value(filename: &str, key: &str) -> Result<String, Box<dyn std::err
         .to_string())
 }
 
-
 // Used to interpret inputs in the terminal: for the purposes of decryption.
 fn read_nonempty_string_from_user(prompt: &str) -> String {
     let mut input = String::new();
@@ -565,9 +622,7 @@ fn read_nonempty_string_from_user(prompt: &str) -> String {
     }
 }
 
-
-
-// Built to build the X and S interpretation Hashes. 
+// Built to build the X and S interpretation Hashes.
 fn process_and_encrypt(
     input_bytes: &[u8],
     secret_bytes: &[u8],
@@ -619,7 +674,6 @@ impl From<std::string::FromUtf8Error> for CustomError {
         CustomError::Utf8Error(err)
     }
 }
-use std::fmt;
 
 impl fmt::Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -656,21 +710,4 @@ impl fmt::Display for AesError {
     }
 }
 
-/* For testing purposes only 
-fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
-    let mut input = String::from(default);
-    loop {
-        print!("{} [{}]: ", prompt, default);
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut input).unwrap();
-        input = input.trim().to_string();
-        if !input.is_empty() {
-            return input;
-        }
-        println!(
-            "{}",
-            "You must enter a non-empty value. Please try again.".red()
-        );
-    }
-}
-*/
+

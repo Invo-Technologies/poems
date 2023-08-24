@@ -6,6 +6,8 @@ use aes_gcm::{
 use rand::Rng;
 use sha2::{Digest, Sha256};
 
+// Encrypts the given message using AES-GCM with a hashed key.
+// The nonce is randomly generated and appended to the end of the ciphertext.
 #[allow(dead_code)] //remove for testing purposes
 pub fn invo_aes_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
     // Hash the key to derive a 32-byte key.
@@ -29,6 +31,7 @@ pub fn invo_aes_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
     buffer
 }
 
+// Decrypts the given ciphertext (with appended nonce) using AES-GCM with a hashed key.
 pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Result<Vec<u8>, AesGcmError> {
     // Hash the key to derive a 32-byte key.
     let mut hasher = Sha256::new();
@@ -45,6 +48,7 @@ pub fn invo_aes_decrypt(ciphertext_and_nonce: &[u8], key: &[u8]) -> Result<Vec<u
     Ok(buffer)
 }
 
+// Similar to `invo_aes_encrypt`, but might be used for a different purpose (e.g., encrypting a different type of data).
 pub fn invo_aes_x_encrypt(message: &[u8], key: &[u8]) -> Vec<u8> {
     // Hash the key to derive a 32-byte key.
     let mut hasher = Sha256::new();
