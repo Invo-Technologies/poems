@@ -1,7 +1,6 @@
 pub mod keys;
 pub mod record;
 
-
 /* For testing purposes only
 fn read_nonempty_string_from_user_default(prompt: &str, default: &str) -> String {
     let mut input = String::from(default);

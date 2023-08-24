@@ -2683,6 +2683,7 @@ dependencies = [
  "pem 2.0.1",
  "rand",
  "rand_core",
+ "reqwest",
  "rsa",
  "rusty-hook",
  "rustyline",
@@ -2695,6 +2696,7 @@ dependencies = [
  "snarkos-cli",
  "snarkos-display",
  "snarkvm",
+ "tokio",
  "wasm-bindgen",
  "webbrowser",
 ]

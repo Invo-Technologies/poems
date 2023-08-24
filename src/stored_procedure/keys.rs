@@ -1,11 +1,9 @@
 // Struct to hold all the different types of keys and identifiers
 use colored::Colorize;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;
-// use std::sync::RwLock;
-// use once_cell::sync::Lazy;
-use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref KEYS: Mutex<Keys> = Mutex::new(Keys::new());
@@ -75,6 +73,7 @@ pub struct AccountQuery {
     gamertag: Option<QueryStruct>,
     public_key: Option<QueryStruct>,
     txid: Option<AleoStruct>,
+    recordcipher: Option<AleoStruct>,
 }
 
 #[allow(dead_code)] // remove for testing function_ids
@@ -365,7 +364,7 @@ impl AccountQuery {
     pub fn set_node_id(&mut self, aleo_value: String) {
         let node_id = AleoStruct {
             aleo_value: Some(aleo_value),
-            tableset_value: Some("node_id".to_string()),
+            tableset_value: Some("NODE ID".to_string()),
         };
         self.node_id = Some(node_id);
     }
@@ -373,7 +372,7 @@ impl AccountQuery {
     pub fn set_game_id(&mut self, aleo_value: String) {
         let game_id = AleoStruct {
             aleo_value: Some(aleo_value),
-            tableset_value: Some("game_id".to_string()),
+            tableset_value: Some("GAME ID".to_string()),
         };
         self.game_id = Some(game_id);
     }
@@ -381,7 +380,7 @@ impl AccountQuery {
     pub fn set_default_currency(&mut self, query_value: String) {
         let default_currency = QueryStruct {
             query_value: Some(query_value),
-            tableset_value: Some("default_currency".to_string()),
+            tableset_value: Some("DEFAULT CURRENCY".to_string()),
         };
         self.default_currency = Some(default_currency);
     }
@@ -389,7 +388,7 @@ impl AccountQuery {
     pub fn set_load_balance(&mut self, query_value: String) {
         let load_balance = QueryStruct {
             query_value: Some(query_value),
-            tableset_value: Some("load_balance".to_string()),
+            tableset_value: Some("LOAD BALANCE".to_string()),
         };
         self.load_balance = Some(load_balance);
     }
@@ -397,7 +396,7 @@ impl AccountQuery {
     pub fn set_pool_id(&mut self, aleo_value: String) {
         let pool_id = AleoStruct {
             aleo_value: Some(aleo_value),
-            tableset_value: Some("pool_id".to_string()),
+            tableset_value: Some("POOL ID".to_string()),
         };
         self.pool_id = Some(pool_id);
     }
@@ -405,7 +404,7 @@ impl AccountQuery {
     pub fn set_asset_id(&mut self, aleo_value: String) {
         let asset_id = AleoStruct {
             aleo_value: Some(aleo_value),
-            tableset_value: Some("asset_id".to_string()),
+            tableset_value: Some("ASSET ID".to_string()),
         };
         self.asset_id = Some(asset_id);
     }
@@ -413,25 +412,33 @@ impl AccountQuery {
     pub fn set_account_id(&mut self, aleo_value: String) {
         let account_id = AleoStruct {
             aleo_value: Some(aleo_value),
-            tableset_value: Some("account_id".to_string()),
+            tableset_value: Some("ACCOUNT ID".to_string()),
         };
         self.account_id = Some(account_id);
-    }
-    //txid: Option<AleoStruct>,
-    pub fn set_txid(&mut self, aleo_value: String) {
-        let txid = AleoStruct {
-            tableset_value: Some("Transaction ID".to_string()),
-            aleo_value: Some(aleo_value),
-        };
-        self.txid = Some(txid);
     }
 
     pub fn set_gamertag(&mut self, query_value: String) {
         let gamertag = QueryStruct {
             query_value: Some(query_value),
-            tableset_value: Some("gamertag".to_string()),
+            tableset_value: Some("GAMERTAG".to_string()),
         };
         self.gamertag = Some(gamertag);
+    }
+    //txid: Option<AleoStruct>,
+    pub fn set_txid(&mut self, aleo_value: String) {
+        let txid = AleoStruct {
+            tableset_value: Some("TRANSACTION ID".to_string()),
+            aleo_value: Some(aleo_value),
+        };
+        self.txid = Some(txid);
+    }
+
+    pub fn set_recordcipher(&mut self, aleo_value: String) {
+        let recordcipher = AleoStruct {
+            tableset_value: Some("RECORD CIPHER".to_string()),
+            aleo_value: Some(aleo_value),
+        };
+        self.recordcipher = Some(recordcipher);
     }
 
     // add this once public keys are introduced by substrate
@@ -480,6 +487,12 @@ impl AccountQuery {
         self.txid
             .as_ref()
             .and_then(|transaction_id| transaction_id.aleo_value.as_ref())
+    }
+
+    pub fn get_recordcipher(&self) -> Option<&String> {
+        self.recordcipher
+            .as_ref()
+            .and_then(|record_cipher| record_cipher.aleo_value.as_ref())
     }
 
     pub fn get_account_id(&self) -> Option<&String> {

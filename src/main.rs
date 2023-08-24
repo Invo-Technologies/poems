@@ -6,7 +6,9 @@ use colored::*;
 use data_encoding::BASE64_NOPAD;
 use dirs;
 use hkdf::Hkdf;
+use reqwest;
 use serde_json::{Map, Value};
+
 use sha2::{Digest, Sha256};
 use webbrowser;
 
@@ -78,8 +80,25 @@ fn prompt_for_integer(prompt: &str) -> String {
     }
 }
 
+async fn fetch_record_from_txid(txid: &str) -> Result<String, MyError> {
+    let url = format!("https://vm.aleo.org/api/testnet3/transaction/{}", txid);
+    let response = reqwest::get(&url).await?;
+
+    if response.status() == reqwest::StatusCode::NOT_FOUND {
+        return Err(MyError::RecordNotFound);
+    }
+
+    let json: Value = response.json().await?;
+    let record = json["execution"]["transitions"][0]["outputs"][0]["value"]
+        .as_str()
+        .ok_or(MyError::RecordNotFound)?;
+
+    Ok(record.to_string())
+}
+
 #[warn(non_snake_case)]
-fn main() {
+#[tokio::main]
+async fn main() {
     println!(
         "{}",
         "\n================================================================= Game Developer's Account Query Program =================================================================\n".green()
@@ -271,27 +290,41 @@ fn main() {
             Transaction ID:
             "at1r7fsfghjpn2hyns9cltfgy700yy0y7rzfvdcjdv4cqehe72wmcrqpm4q95"
          */
-    println!("this is before x is set");
-    let z1 = &keys.get_z1().unwrap();
-    println!("{}", &z1);
-    let z2 = &keys.get_z2().unwrap();
-    println!("{}", &z2);
-    let z3 = &keys.get_z3().unwrap();
-    println!("{}", &z3);
-    let z5 = &keys.get_z5().unwrap();
-    println!("{}", &z5);
+    // println!("this is before x is set");
+    // let z1 = &keys.get_z1().unwrap();
+    // println!("{}", &z1);
+    // let z2 = &keys.get_z2().unwrap();
+    // println!("{}", &z2);
+    // let z3 = &keys.get_z3().unwrap();
+    // println!("{}", &z3);
+    // let z5 = &keys.get_z5().unwrap();
+    // println!("{}", &z5);
 
-    // 1. Pass these values to the execute_aleo_command function
-    if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5, &mut query) {
-        println!("Transaction ID: {}", tx_id);
-        query.set_txid(tx_id); // Set the transaction ID using the provided function
-    } else {
-        println!("Failed to retrieve Transaction ID");
-    }
-    sleep(Duration::from_secs(1));
+    // // 1. Pass these values to the execute_aleo_command function
+    // if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5, &mut query) {
+    //     println!("Transaction ID: {}", tx_id);
+    //     query.set_txid(tx_id); // Set the transaction ID using the provided function
+    // } else {
+    //     println!("Failed to retrieve Transaction ID");
+    // }
+    // sleep(Duration::from_secs(1));
 
     // STEP 2 --- it needs to wait for the txid, and then use the internet to get the execution record cipher.
     // * https://vm.aleo.org/api/testnet3/transaction/at1sm9amjpervlff5dpstlhdwxn0cp8yv3h3rm0ffdyttvugzqjrq8ssk4h6l
+
+    let txid = "at1y7t548c66ujdfjvk8ymu73fth75gprqlf2rtss0zk2nzgfp3rgpslavvjn"; // Replace with the actual txid or fetch it from your method
+    let record = match fetch_record_from_txid(txid).await {
+        Ok(record) => {
+            println!("Fetched record: {}", record);
+            record
+        }
+        Err(e) => {
+            eprintln!("Error fetching record: {}", e);
+            return; // Exit the function if there's an error
+        }
+    };
+
+    query.set_recordcipher(record);
 
     // step 2.5 --- I then need to set that record cipher as record cipher in keys.storage.
     // object/execution/transitions/outputs/value
@@ -710,4 +743,27 @@ impl fmt::Display for AesError {
     }
 }
 
+use std::error::Error;
+#[derive(Debug)]
+enum MyError {
+    RecordNotFound,
+    ReqwestError(reqwest::Error),
+    // Add other error variants as needed
+}
 
+impl From<reqwest::Error> for MyError {
+    fn from(err: reqwest::Error) -> MyError {
+        MyError::ReqwestError(err)
+    }
+}
+
+impl std::fmt::Display for MyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            MyError::RecordNotFound => write!(f, "Record not found"),
+            MyError::ReqwestError(err) => write!(f, "Reqwest error: {}", err),
+        }
+    }
+}
+
+impl Error for MyError {}
