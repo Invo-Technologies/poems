@@ -16,6 +16,7 @@ use webbrowser;
 mod generation_procedure;
 mod stored_procedure;
 
+
 // Items from those modules
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::{AccountQuery, Keys};
@@ -33,6 +34,8 @@ use std::fs::{self, File};
 use std::io::{self, prelude::*, Write}; //
 use std::path::PathBuf;
 use std::process::Command;
+
+
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -82,18 +85,44 @@ fn prompt_for_integer(prompt: &str) -> String {
 
 async fn fetch_record_from_txid(txid: &str) -> Result<String, MyError> {
     let url = format!("https://vm.aleo.org/api/testnet3/transaction/{}", txid);
-    let response = reqwest::get(&url).await?;
+    let mut retries = 5; // Number of retries
 
-    if response.status() == reqwest::StatusCode::NOT_FOUND {
-        return Err(MyError::RecordNotFound);
+    loop {
+        let response = reqwest::blocking::get(&url);
+
+        match response {
+            Ok(resp) if resp.status() == reqwest::StatusCode::OK => {
+                let raw_response = resp.text().unwrap();
+                println!("Raw response: {:?}", raw_response);
+
+                // Parse the raw response as JSON
+                let json: Value = serde_json::from_str(&raw_response).unwrap();
+
+                // Extract the record
+                if let Some(record) = json["execution"]["transitions"][0]["outputs"][0]["value"].as_str() {
+                    return Ok(record.to_string());
+                } else {
+                    return Err(MyError::RecordNotFound);
+                }
+            }
+            Ok(resp) => {
+                eprintln!("Received a non-OK status: {}", resp.status());
+            }
+            Err(e) => {
+                eprintln!("Error making request: {}", e);
+            }
+        }
+
+        if retries == 0 {
+            break;
+        }
+
+        // Wait for a while before retrying
+        sleep(Duration::from_secs(5));
+        retries -= 1;
     }
 
-    let json: Value = response.json().await?;
-    let record = json["execution"]["transitions"][0]["outputs"][0]["value"]
-        .as_str()
-        .ok_or(MyError::RecordNotFound)?;
-
-    Ok(record.to_string())
+    Err(MyError::RecordNotFound)
 }
 
 #[warn(non_snake_case)]
@@ -290,29 +319,35 @@ async fn main() {
             Transaction ID:
             "at1r7fsfghjpn2hyns9cltfgy700yy0y7rzfvdcjdv4cqehe72wmcrqpm4q95"
          */
-    // println!("this is before x is set");
-    // let z1 = &keys.get_z1().unwrap();
+    println!("EXECUTING ALEO RECORD FROM PROGRAM ...\n");
+    let z1 = &keys.get_z1().unwrap();
     // println!("{}", &z1);
-    // let z2 = &keys.get_z2().unwrap();
-    // println!("{}", &z2);
-    // let z3 = &keys.get_z3().unwrap();
-    // println!("{}", &z3);
-    // let z5 = &keys.get_z5().unwrap();
-    // println!("{}", &z5);
+    let z2 = &keys.get_z2().unwrap();
 
-    // // 1. Pass these values to the execute_aleo_command function
-    // if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5, &mut query) {
-    //     println!("Transaction ID: {}", tx_id);
-    //     query.set_txid(tx_id); // Set the transaction ID using the provided function
-    // } else {
-    //     println!("Failed to retrieve Transaction ID");
-    // }
-    // sleep(Duration::from_secs(1));
+    let z3 = &keys.get_z3().unwrap();
 
+    let z5 = &keys.get_z5().unwrap();
+
+    // 1. Pass these values to the execute_aleo_command function
+    if let Some(tx_id) = execute_aleo_command(&z1, &z2, &z3, &z5, &mut query) {
+        println!("Transaction ID: {}", tx_id);
+        query.set_txid(tx_id); // Set the transaction ID using the provided function
+    } else {
+        println!("Failed to retrieve Transaction ID");
+    }
+    sleep(Duration::from_secs(1)); // must wait at least a second to update the transaction ID on chain.
+
+    println!("\n");
+    update_record_and_pause(&keys, &query);
+    println!("UPDATING TXID\n");
+    println!("\n");
+    //--------------------------------------------------------------------------------------------------------------------------------
     // STEP 2 --- it needs to wait for the txid, and then use the internet to get the execution record cipher.
     // * https://vm.aleo.org/api/testnet3/transaction/at1sm9amjpervlff5dpstlhdwxn0cp8yv3h3rm0ffdyttvugzqjrq8ssk4h6l
-
-    let txid = "at1y7t548c66ujdfjvk8ymu73fth75gprqlf2rtss0zk2nzgfp3rgpslavvjn"; // Replace with the actual txid or fetch it from your method
+    println!("RETURNING RECORD CIPHER ... \n");
+    println!("\n");
+    let txid = query.get_txid().unwrap();
+    println!("Using txid: {}", &txid);
     let record = match fetch_record_from_txid(txid).await {
         Ok(record) => {
             println!("Fetched record: {}", record);
@@ -320,25 +355,37 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("Error fetching record: {}", e);
-            return; // Exit the function if there's an error
+            return;
         }
-    };
+    }; // STEP 2.5 --- set trecord cipher as query.set_recordcipher in keys.rs storage_procedure.
+    sleep(Duration::from_secs(1));
 
     query.set_recordcipher(record);
 
-    // step 2.5 --- I then need to set that record cipher as record cipher in keys.storage.
-    // object/execution/transitions/outputs/value
-    /*
-    record1qyqsqcvd4cz909fujrh8rsv5feswymfpycdklpprfv7p49ww5t6zv6qrp5rkzurfta4k272rqqpqyqpg4t68nnzxuy0muzllqtyefxe00yrk0f5x86nc3h6haz5p74f5z8et8hre9juumazc0fxj5slfwmld34s3t34f92rf0609zts48uuqvpmwdajx2hmfv3psqqszqza362jmhtvzmguwptkea9hvyp05678gayk72a7gqmwml02ckg8sf7mfjp92g35lr5gauu6hr6qh2z4j4epj2ztjxsjt82a6zdamnpcpqankzmt9ta5kgscqqgpqpcw03dqt0ysrddu3zn5hluvm7dyvqlqjcxzsrtk9lwdahfkknwqq4p3hzxrkxzfx8244epvlhaydh4k46yad703qme8pf5t5aq5czsyqwur0dak976tygvqqyqsq78hhqq6vxnd9rrpx737gxnsmc62k2ucm0f6xa4ycrdvd2k52xuqzp9weczqcy9jt676d5k4te9v5f5x0hmt36e7w96cqzmau6zvvkzs2v93kxmm4de6976tygvqqyqsq67a2du0upaqgweqtt9ks6r4yhzlak2ae0h2kktz2um683msthvyp3urp49wr0js5cnsdawxxt2slr6tc6wntvxeaexlnt4ajfgktjzcgv9ehxet5ta5kgscqqgpqp4gavk6su380cxknzrs8x774q5vdjw5q3tlayqpfacuz9ssx32cz59kgpqg6dkwu7x8wq033fdxcpfuxrn4nsc7jr4f5l2m53k38y5zqkerfvenxje2lddjhjv2rqqpqyqqwxmumx6p0jx0ny6dpqu6jwpddt9h0rkztdmmmryjzp4cease0p43864kxh0mstkx3g52ew7y5u8ydggaqaaddkf5grd84yytpg9lqgzmyd9nxv6t9ta4k27fjgvqqyqsqq7pm4qv930fvmmnqyls54tzd0uf4l5p5hdpuh67krwrsr9jy5sq5raavl80vvd0t658udtmk6psfpxpe8fmr3v6946l7q0t3cm8fkqqz0gc5xqqzqgqv6d2rnmrl4l4t8mxglwjlhqst64dj0p8a8p3qx8rwzee9tsvaqzlaffjdgq2eqfmkqtq5l3csh0yczyy7dw68nhjn2zaqxy9pahp4pqp85vjrqqpqyqq4qxr292nwwhvu6xsvd88pzner330z8v5mcs9y7zjhl2lt9tpnp0a2a9t33hzajvadvkpu3z594spkwtp8fcvamdwk7xey29ed5qsqqqn6xdpsqqszqzvxv8qzkmempy6gt28ye2vr5cnw8xva3xm7cp8z58kejwf6xm5qfzav46zdxv8e9vzvt6su09d5ru60duz3g56pj96d5kteduw8qnsvqfargscqqgpqqupju4x0qy9tqlka5cwczkyy2qsy9vs7l5ntfkl5cgkrdgqxsacftdg8df38kapjxstm3j7673qgglslg9lhd9e5pq6kpzamzkspv5zqy734gvqqyqsqj2ma53lz83g9f879zckvae5wfm06gk0z2v3qp3sae4ddgy0f3v9flclam2lx75fsxa75mg3p2lyxlwzz8r8adtvzqpup2v8jj3cd7pf5647yyyjmsf9t7kxj7f4pesqr3v00kdpty5hautsfed07uqweqsal88j6
-     */
+    println!("\n");
+    update_record_and_pause(&keys, &query);
+    println!("UPDATING RECORD CIPHER ...\n");
+    println!("\n");
+
+    //--------------------------------------------------------------------------------------------------------------------------------
     // STEP 3 ---and then it needs to decrypt the record cipher with snark os command {record} {viewkey} from record.json
     // snarkos developer decrypt --ciphertext "" --view-key "" // get view key from .env file
+    let record = query.get_recordcipher().unwrap().clone();
+    if let Err(e) = snarkos_decrypt(&record, &mut query, &mut keys) {
+        eprintln!("Error during decryption: {}", e);
+        println!("\nUPDATING ACCOUNT QUERY AND BIND ID's (z's) ...\n");
+        update_record_and_pause(&keys, &query);
+    }
+    sleep(Duration::from_secs(2));
+
     // STEP 4 ---and then I need to view the output in the terminal, and set the z keys again here, where in which the rest of this function continues.
 
     // Geterate the X interpretations. Occurs after step 5 of the program= executiion.
+    println!("BUILDING X INTERPRETATIONS ...\n");
     for i in 1..=5 {
         process_and_set_x_for_z(&mut keys, &hmac_hex_2, i);
     }
+    sleep(Duration::from_secs(3));
     println!("this is after x is set");
     println!("\n");
     update_record_and_pause(&keys, &query);
@@ -453,6 +500,55 @@ async fn main() {
         }
     }
 } // --- make this portion continuous for use. -------------------------------------------------------------------------------------------------------------------------------- ENDING OF MAIN PROGRAM
+
+fn snarkos_decrypt(record: &str, query: &mut AccountQuery, keys: &mut Keys) -> Result<(), MyError> {
+    // Load the VIEWKEY from .env
+    let view_key = env::var("VIEWKEY").expect("VIEWKEY not set in .env");
+
+    // Construct the command
+    let output = Command::new("snarkos")
+        .arg("developer")
+        .arg("decrypt")
+        .arg("--ciphertext")
+        .arg(format!("\"{}\"", record))
+        .arg("--view-key")
+        .arg(format!("\"{}\"", view_key))
+        .output()
+        .expect("Failed to execute snarkos command");
+
+    // Convert the output bytes to a string
+    let output_str = String::from_utf8_lossy(&output.stdout);
+
+    // Split the string by lines and extract values
+    for line in output_str.lines() {
+        let parts: Vec<&str> = line.split(": ").collect();
+        if parts.len() == 2 {
+            let key = parts[0].trim();
+            let mut value = parts[1].trim();
+
+            // Remove 'aleo' and '.private' from the value if they exist
+            if value.starts_with("aleo") && value.ends_with(".private") {
+                value = &value[4..value.len() - 8];
+            }
+
+            match key {
+                "node_id" => query.set_node_id(value.to_string()),
+                "game_id" => query.set_game_id(value.to_string()),
+                "pool_id" => query.set_pool_id(value.to_string()),
+                "account_id" => query.set_account_id(value.to_string()),
+                "asset_id" => query.set_asset_id(value.to_string()),
+                "z1" => keys.set_z1(value.to_string()),
+                "z2" => keys.set_z2(value.to_string()),
+                "z3" => keys.set_z3(value.to_string()),
+                "z4" => keys.set_z4(value.to_string()),
+                "z5" => keys.set_z5(value.to_string()),
+                _ => continue, // Ignore other keys
+            }
+        }
+    }
+
+    Ok(())
+}
 
 fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, CustomError> {
     // Generate a hash from the password
@@ -743,17 +839,27 @@ impl fmt::Display for AesError {
     }
 }
 
+use reqwest::Error as ReqwestError;
+use serde_json::Error as SerdeJsonError;
 use std::error::Error;
+
 #[derive(Debug)]
 enum MyError {
     RecordNotFound,
-    ReqwestError(reqwest::Error),
+    ReqwestError(ReqwestError),
+    JsonParseError(SerdeJsonError),
     // Add other error variants as needed
 }
 
-impl From<reqwest::Error> for MyError {
-    fn from(err: reqwest::Error) -> MyError {
+impl From<ReqwestError> for MyError {
+    fn from(err: ReqwestError) -> MyError {
         MyError::ReqwestError(err)
+    }
+}
+
+impl From<SerdeJsonError> for MyError {
+    fn from(err: SerdeJsonError) -> MyError {
+        MyError::JsonParseError(err)
     }
 }
 
@@ -762,6 +868,7 @@ impl std::fmt::Display for MyError {
         match self {
             MyError::RecordNotFound => write!(f, "Record not found"),
             MyError::ReqwestError(err) => write!(f, "Reqwest error: {}", err),
+            MyError::JsonParseError(err) => write!(f, "JSON parse error: {}", err),
         }
     }
 }
