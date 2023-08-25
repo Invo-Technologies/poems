@@ -16,7 +16,6 @@ use webbrowser;
 mod generation_procedure;
 mod stored_procedure;
 
-
 // Items from those modules
 use crate::generation_procedure::{aes::invo_aes_x_encrypt, rsa::generate_rsa_keys};
 use crate::stored_procedure::keys::{AccountQuery, Keys};
@@ -34,9 +33,7 @@ use std::fs::{self, File};
 use std::io::{self, prelude::*, Write}; //
 use std::path::PathBuf;
 use std::process::Command;
-
-
-use std::thread::sleep;
+//use tokio::time::sleep;
 use std::time::Duration;
 
 /// Introduces a short delay of 1 second.
@@ -84,45 +81,53 @@ fn prompt_for_integer(prompt: &str) -> String {
 }
 
 async fn fetch_record_from_txid(txid: &str) -> Result<String, MyError> {
-    let url = format!("https://vm.aleo.org/api/testnet3/transaction/{}", txid);
     let mut retries = 5; // Number of retries
 
     loop {
-        let response = reqwest::blocking::get(&url);
+        let url = format!("https://vm.aleo.org/api/testnet3/transaction/{}", txid);
 
-        match response {
-            Ok(resp) if resp.status() == reqwest::StatusCode::OK => {
-                let raw_response = resp.text().unwrap();
-                println!("Raw response: {:?}", raw_response);
+        let result = tokio::task::spawn_blocking(move || {
+            let response = reqwest::blocking::get(&url);
 
-                // Parse the raw response as JSON
-                let json: Value = serde_json::from_str(&raw_response).unwrap();
+            match response {
+                Ok(resp) if resp.status() == reqwest::StatusCode::OK => {
+                    let raw_response = resp.text().unwrap();
+                    println!("Raw response: {:?}", raw_response);
 
-                // Extract the record
-                if let Some(record) = json["execution"]["transitions"][0]["outputs"][0]["value"].as_str() {
-                    return Ok(record.to_string());
-                } else {
+                    // Parse the raw response as JSON
+                    let json: Value = serde_json::from_str(&raw_response).unwrap();
+
+                    // Extract the record
+                    if let Some(record) =
+                        json["execution"]["transitions"][0]["outputs"][0]["value"].as_str()
+                    {
+                        return Ok(record.to_string());
+                    } else {
+                        return Err(MyError::RecordNotFound);
+                    }
+                }
+                Ok(resp) => {
+                    eprintln!("Received a non-OK status: {}", resp.status());
+                    return Err(MyError::RecordNotFound);
+                }
+                Err(e) => {
+                    eprintln!("Error making request: {}", e);
                     return Err(MyError::RecordNotFound);
                 }
             }
-            Ok(resp) => {
-                eprintln!("Received a non-OK status: {}", resp.status());
-            }
-            Err(e) => {
-                eprintln!("Error making request: {}", e);
+        })
+        .await?;
+
+        match result {
+            Ok(record) => return Ok(record),
+            Err(_) if retries == 0 => return Err(MyError::RecordNotFound),
+            Err(_) => {
+                // Wait for a while before retrying
+                tokio::time::sleep(Duration::from_secs(5)).await;
+                retries -= 1;
             }
         }
-
-        if retries == 0 {
-            break;
-        }
-
-        // Wait for a while before retrying
-        sleep(Duration::from_secs(5));
-        retries -= 1;
     }
-
-    Err(MyError::RecordNotFound)
 }
 
 #[warn(non_snake_case)]
@@ -335,7 +340,7 @@ async fn main() {
     } else {
         println!("Failed to retrieve Transaction ID");
     }
-    sleep(Duration::from_secs(1)); // must wait at least a second to update the transaction ID on chain.
+    tokio::time::sleep(Duration::from_secs(2)).await; // must wait at least a second to update the transaction ID on chain.
 
     println!("\n");
     update_record_and_pause(&keys, &query);
@@ -358,7 +363,7 @@ async fn main() {
             return;
         }
     }; // STEP 2.5 --- set trecord cipher as query.set_recordcipher in keys.rs storage_procedure.
-    sleep(Duration::from_secs(1));
+    tokio::time::sleep(Duration::from_secs(1)).await;
 
     query.set_recordcipher(record);
 
@@ -371,12 +376,15 @@ async fn main() {
     // STEP 3 ---and then it needs to decrypt the record cipher with snark os command {record} {viewkey} from record.json
     // snarkos developer decrypt --ciphertext "" --view-key "" // get view key from .env file
     let record = query.get_recordcipher().unwrap().clone();
+    println!("Record to decrypt: {}", record); // Debug statement
     if let Err(e) = snarkos_decrypt(&record, &mut query, &mut keys) {
         eprintln!("Error during decryption: {}", e);
         println!("\nUPDATING ACCOUNT QUERY AND BIND ID's (z's) ...\n");
         update_record_and_pause(&keys, &query);
+    } else {
+        println!("Decryption unsuccessful!"); // Debug statement
     }
-    sleep(Duration::from_secs(2));
+    tokio::time::sleep(Duration::from_secs(5)).await;
 
     // STEP 4 ---and then I need to view the output in the terminal, and set the z keys again here, where in which the rest of this function continues.
 
@@ -385,7 +393,7 @@ async fn main() {
     for i in 1..=5 {
         process_and_set_x_for_z(&mut keys, &hmac_hex_2, i);
     }
-    sleep(Duration::from_secs(3));
+    tokio::time::sleep(Duration::from_secs(1)).await;
     println!("this is after x is set");
     println!("\n");
     update_record_and_pause(&keys, &query);
@@ -502,6 +510,8 @@ async fn main() {
 } // --- make this portion continuous for use. -------------------------------------------------------------------------------------------------------------------------------- ENDING OF MAIN PROGRAM
 
 fn snarkos_decrypt(record: &str, query: &mut AccountQuery, keys: &mut Keys) -> Result<(), MyError> {
+    println!("Executing snarkos_decrypt function..."); // Debug statement
+
     // Load the VIEWKEY from .env
     let view_key = env::var("VIEWKEY").expect("VIEWKEY not set in .env");
 
@@ -509,15 +519,14 @@ fn snarkos_decrypt(record: &str, query: &mut AccountQuery, keys: &mut Keys) -> R
     let output = Command::new("snarkos")
         .arg("developer")
         .arg("decrypt")
-        .arg("--ciphertext")
-        .arg(format!("\"{}\"", record))
-        .arg("--view-key")
-        .arg(format!("\"{}\"", view_key))
+        .args(&["--ciphertext", record])
+        .args(&["--view-key", &view_key])
         .output()
         .expect("Failed to execute snarkos command");
 
     // Convert the output bytes to a string
     let output_str = String::from_utf8_lossy(&output.stdout);
+    println!("Snarkos output:\n{}", output_str); // Debug statement
 
     // Split the string by lines and extract values
     for line in output_str.lines() {
@@ -848,6 +857,7 @@ enum MyError {
     RecordNotFound,
     ReqwestError(ReqwestError),
     JsonParseError(SerdeJsonError),
+    TaskJoinError(tokio::task::JoinError),
     // Add other error variants as needed
 }
 
@@ -863,12 +873,19 @@ impl From<SerdeJsonError> for MyError {
     }
 }
 
+impl From<tokio::task::JoinError> for MyError {
+    fn from(err: tokio::task::JoinError) -> MyError {
+        MyError::TaskJoinError(err)
+    }
+}
+
 impl std::fmt::Display for MyError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             MyError::RecordNotFound => write!(f, "Record not found"),
             MyError::ReqwestError(err) => write!(f, "Reqwest error: {}", err),
             MyError::JsonParseError(err) => write!(f, "JSON parse error: {}", err),
+            MyError::TaskJoinError(err) => write!(f, "Task join error: {}", err),
         }
     }
 }
