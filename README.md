@@ -73,8 +73,19 @@ cargo build --release
 
 3. Execute the project.
 
+To execute the entire draft of the protocol, use : 
 ```bash
 cargo run --all-features
+```
+
+To execute only the decryption program, use : 
+```bash
+cargo run --bin decrypt
+```
+
+To execute only the registration / key generation without the decryption program, use : 
+```bash
+cargo run --bin registration
 ```
 
 ### Running the Frontend
