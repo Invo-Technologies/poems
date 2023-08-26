@@ -2667,6 +2667,7 @@ dependencies = [
  "block-modes",
  "block-padding 0.2.1",
  "cbc",
+ "clap",
  "colored",
  "data-encoding",
  "dirs 5.0.1",
