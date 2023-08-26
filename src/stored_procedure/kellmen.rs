@@ -29,7 +29,6 @@ use crate::stored_procedure::kellmen::aes::{invo_aes_decrypt, invo_aes_x_encrypt
 use crate::stored_procedure::keys::*;
 use crate::stored_procedure::record::Record;
 
-
 // ==============================
 // Utility Functions
 // ==============================
@@ -63,7 +62,6 @@ pub fn read_nonempty_string_from_user(prompt: &str) -> String {
     }
 }
 
-
 pub async fn short_delay() {
     task::sleep(std::time::Duration::from_secs(1)).await;
 }
@@ -71,7 +69,6 @@ pub async fn short_delay() {
 // ==============================
 // Encryption and Decryption Functions
 // ==============================
-
 
 pub fn process_and_encrypt(
     input_bytes: &[u8],
@@ -126,7 +123,6 @@ pub fn decrypt_text(ciphertext_base64: &str, secret: &str) -> Result<String, Cus
 // ==============================
 // Data Extraction and Writing Functions
 // ==============================
-
 
 pub fn extract_and_write() -> Result<(), Box<dyn std::error::Error>> {
     // Read the record.json file
@@ -225,11 +221,9 @@ pub fn process_and_set_x_for_z(keys: &mut Keys, hmac_hex_2: &str, z_key_number: 
     };
 }
 
-
 // ==============================
 // Aleo and Snarkos Command Execution Functions
 // ==============================
-
 
 pub fn execute_aleo_command(
     z1: &str,
@@ -277,8 +271,6 @@ pub fn execute_aleo_command(
 
     None
 }
-
-
 
 pub fn snarkos_decrypt(
     record: &str,
@@ -415,11 +407,3 @@ pub fn prompt_for_integer(prompt: &str) -> String {
         input.clear(); // Clear the input buffer to accept a new value in the next iteration
     }
 }
-
-
-
-
-
-
-
-

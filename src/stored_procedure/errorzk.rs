@@ -1,13 +1,29 @@
-// use crate::generation_procedure;
-// use crate::stored_procedure;
+use std::error::Error;
 use std::fmt;
+
+// =====================================
+// CustomError Enum and its Implementations
+// =====================================
 
 #[derive(Debug)]
 pub enum CustomError {
     HkdfError,
     Base64Error(data_encoding::DecodeError),
-    AesError(aes_gcm::Error), // Here aes_gcm::Error is used directly
+    AesError(aes_gcm::Error),
     Utf8Error(std::string::FromUtf8Error),
+}
+
+impl fmt::Display for CustomError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CustomError::HkdfError => write!(f, "Failed to generate key"),
+            CustomError::Base64Error(ref err) => write!(f, "Base64 decoding error: {}", err),
+            CustomError::AesError(_) => {
+                write!(f, "Decryption failed, please check your secret key")
+            }
+            CustomError::Utf8Error(ref err) => write!(f, "UTF-8 conversion error: {}", err),
+        }
+    }
 }
 
 impl From<aes_gcm::Error> for CustomError {
@@ -28,28 +44,13 @@ impl From<std::string::FromUtf8Error> for CustomError {
     }
 }
 
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            CustomError::HkdfError => write!(f, "Failed to generate key"),
-            CustomError::Base64Error(ref err) => write!(f, "Base64 decoding error: {}", err),
-            CustomError::AesError(_) => {
-                write!(f, "Decryption failed, please check your secret key")
-            }
-            CustomError::Utf8Error(ref err) => write!(f, "UTF-8 conversion error: {}", err),
-        }
-    }
-}
+// =====================================
+// AesError Enum and its Implementations
+// =====================================
 
 #[derive(Debug)]
 pub enum AesError {
     Generic,
-}
-
-impl From<aes_gcm::Error> for AesError {
-    fn from(_err: aes_gcm::Error) -> AesError {
-        AesError::Generic
-    }
 }
 
 impl fmt::Display for AesError {
@@ -63,39 +64,26 @@ impl fmt::Display for AesError {
     }
 }
 
-use reqwest::Error as ReqwestError;
-use serde_json::Error as SerdeJsonError;
-use std::error::Error;
+impl From<aes_gcm::Error> for AesError {
+    fn from(_err: aes_gcm::Error) -> AesError {
+        AesError::Generic
+    }
+}
+
+// =====================================
+// MyError Enum and its Implementations
+// =====================================
 
 #[derive(Debug)]
 pub enum MyError {
     RecordNotFound,
-    ReqwestError(ReqwestError),
-    JsonParseError(SerdeJsonError),
+    ReqwestError(reqwest::Error),
+    JsonParseError(serde_json::Error),
     TaskJoinError(tokio::task::JoinError),
-    // Add other error variants as needed
 }
 
-impl From<ReqwestError> for MyError {
-    fn from(err: ReqwestError) -> MyError {
-        MyError::ReqwestError(err)
-    }
-}
-
-impl From<SerdeJsonError> for MyError {
-    fn from(err: SerdeJsonError) -> MyError {
-        MyError::JsonParseError(err)
-    }
-}
-
-impl From<tokio::task::JoinError> for MyError {
-    fn from(err: tokio::task::JoinError) -> MyError {
-        MyError::TaskJoinError(err)
-    }
-}
-
-impl std::fmt::Display for MyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for MyError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             MyError::RecordNotFound => write!(f, "Record not found"),
             MyError::ReqwestError(err) => write!(f, "Reqwest error: {}", err),
@@ -106,3 +94,21 @@ impl std::fmt::Display for MyError {
 }
 
 impl Error for MyError {}
+
+impl From<reqwest::Error> for MyError {
+    fn from(err: reqwest::Error) -> MyError {
+        MyError::ReqwestError(err)
+    }
+}
+
+impl From<serde_json::Error> for MyError {
+    fn from(err: serde_json::Error) -> MyError {
+        MyError::JsonParseError(err)
+    }
+}
+
+impl From<tokio::task::JoinError> for MyError {
+    fn from(err: tokio::task::JoinError) -> MyError {
+        MyError::TaskJoinError(err)
+    }
+}

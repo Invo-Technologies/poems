@@ -11,7 +11,6 @@ use poems::{
         sha256,
     },
     stored_procedure::{
-        
         kellmen::{
             execute_aleo_command, extract_and_write, fetch_record_from_txid, process_and_encrypt,
             process_and_set_x_for_z, prompt_for_integer, read_nonempty_string_from_user,
