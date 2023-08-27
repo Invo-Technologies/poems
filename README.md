@@ -1,3 +1,6 @@
+Sure! Here's an updated `README.md` that includes instructions on how to install and use the `poems` command-line tool:
+
+```markdown
 # Poems: Proof of the Effective Majority Staked
 
 ![Poems Overview](https://github.com/Invo-Technologies/poems/assets/43707795/08d7559e-9161-47f5-a263-307faed2f3cc)
@@ -9,6 +12,7 @@ Poems, short for Proof of the Effective Majority Staked, is an innovative approa
 - [Prerequisites](#prerequisites)
 - [Installation Instructions](#installation-instructions)
 - [Running the Project](#running-the-project)
+- [Usage](#usage)
 - [Understanding POEMS](#understanding-poems)
 - [The Easy Explanation](#the-easy-explanation)
 
@@ -41,51 +45,48 @@ npm -v
 npm install -g create-vite
 ```
 
-**Rust:**
+**Rust and Cargo:**
 
 ```bash
 # Download and install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
 
-**Cargo:**
-
-```bash
 # Cargo comes with Rust, verify installation
 cargo --version
 ```
 
 ## Running the Project
 
-### Running the Rust Program
+### Installing the Poems CLI
 
-1. Navigate to the root directory of the Rust project.
+1. Navigate to the root directory of the Poems project.
 
 ```bash
 cd poems
 ```
 
-2. Build the project without running `cargo update`. The `cargo update` command updates your Rust dependencies, but in this project, it can disrupt the code. Therefore, avoid running it.
+2. Build and install the project.
 
 ```bash
-cargo build --release
+cargo install --path .
 ```
 
-3. Execute the project.
+This will install the `poems` command-line tool on your system.
 
-To execute the entire draft of the protocol, use : 
+### Usage
+
+After installing, you can use the `poems` command followed by a subcommand:
+
+- To execute the decryption program:
+
 ```bash
-cargo run --all-features
+poems decrypt
 ```
 
-To execute only the decryption program, use : 
-```bash
-cargo run --bin decrypt
-```
+- To execute the registration/key generation without the decryption program:
 
-To execute only the registration / key generation without the decryption program, use : 
 ```bash
-cargo run --bin registration
+poems registration
 ```
 
 ### Running the Frontend
@@ -109,6 +110,13 @@ npm run dev
 ```
 
 Open the displayed local address in your web browser to interact with the project.
+
+## Understanding POEMS
+
+... [rest of the content remains unchanged]
+```
+
+This updated `README.md` provides clear instructions on how to install and use the `poems` command-line tool. After making these changes to your README, anyone who clones or downloads your project will have a clear guide on how to set up and use the tool.
 
 ## Understanding POEMS
 

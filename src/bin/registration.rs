@@ -110,7 +110,7 @@ async fn main() {
     // Retrieve the private key (P) from the `keys` instance.
     let p_key = keys.get_p();
     // Remove any double quotes from the private key.
-    let new_p_key = p_key.unwrap().replace("\"", "");
+    let _new_p_key = p_key.unwrap().replace("\"", "");
 
     println!(
         "{}",

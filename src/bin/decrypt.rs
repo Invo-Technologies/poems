@@ -3,7 +3,6 @@ use poems::{generation_procedure::aes::invo_aes_decrypt, stored_procedure::error
 use colored::*;
 use data_encoding::BASE64_NOPAD;
 use sha2::{Digest, Sha256};
-use std::fmt;
 
 use std::fs::File;
 use std::io::{self, prelude::*, Write}; //

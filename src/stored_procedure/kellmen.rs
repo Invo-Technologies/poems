@@ -15,12 +15,12 @@ use webbrowser;
 
 // Standard library imports
 use std::env;
-use std::fmt;
+
 use std::fs::{self, File};
 use std::io::{self, prelude::*, Write};
 use std::path::PathBuf;
 use std::process::Command;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 // Internal modules
 use crate::generation_procedure::*;
@@ -230,7 +230,7 @@ pub fn execute_aleo_command(
     z2: &str,
     z3: &str,
     z5: &str,
-    query: &mut AccountQuery,
+    _query: &mut AccountQuery,
 ) -> Option<String> {
     // Load values from .env
     let appname = env::var("APPNAME").expect("APPNAME not set in .env");
