@@ -1,6 +1,4 @@
-Sure! Here's an updated `README.md` that includes instructions on how to install and use the `poems` command-line tool:
 
-```markdown
 # Poems: Proof of the Effective Majority Staked
 
 ![Poems Overview](https://github.com/Invo-Technologies/poems/assets/43707795/08d7559e-9161-47f5-a263-307faed2f3cc)
