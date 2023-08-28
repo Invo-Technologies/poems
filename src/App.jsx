@@ -22,7 +22,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1>POEMS ALEO DEMO</h1>
       <button onClick={runDecrypt}>Run Decrypt</button>
       <button onClick={runRegister}>Run Register</button>
       <button onClick={runEnv}>Run Env</button>
