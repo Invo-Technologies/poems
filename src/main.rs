@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::str::FromStr;
-
+use dotenv::dotenv;
+use std::env;
 /// Simple program to handle custom poems commands
 #[derive(Parser, Debug, Clone)]
 #[clap(
@@ -34,6 +35,8 @@ impl FromStr for Command {
 }
 
 fn main() {
+    dotenv().ok();
+    let my_variable = env::var("APPNAME").unwrap_or("default_value".to_string());
     let args = PoemsCLI::parse();
 
     match args.cmd {

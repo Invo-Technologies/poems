@@ -1,7 +1,8 @@
 [package]
 name = "poems"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2018"
+description="Encrypt inputs into a Zero Knowledge Proof Hash Mixer, and return the values and decrypt using decryption keys"
 
 # crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -53,7 +54,6 @@ webbrowser = "0.8.10"
 [lib]
 name = "poems"
 path = "src/lib.rs"
-
 
 
 [profile.dev.package.num-bigint-dig]
