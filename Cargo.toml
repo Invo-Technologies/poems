@@ -71,6 +71,12 @@ path = "src/bin/decrypt.rs"
 name = "registration"
 path = "src/bin/registration.rs"
 
+[[bin]]
+name = "environment"
+path = "src/bin/environment.rs"
+
+
+
 
 
 

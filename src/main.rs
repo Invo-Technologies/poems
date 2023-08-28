@@ -2,12 +2,13 @@ use clap::Parser;
 use std::str::FromStr;
 use dotenv::dotenv;
 use std::env;
+
 /// Simple program to handle custom poems commands
 #[derive(Parser, Debug, Clone)]
 #[clap(
-    version = "1.0",
-    author = "Your Name. <your.email@example.com>",
-    about = "Handles custom poems commands"
+    version = "2.0",
+    author = "Dylan Kawalec <dkawalec@ourinvo.com>",
+    about = "Encrypt inputs into a Zero Knowledge Proof Hash Mixer, and return the values and decrypt using decryption keys"
 )]
 struct PoemsCLI {
     #[clap(subcommand)]
@@ -20,6 +21,8 @@ enum Command {
     Decrypt,
     /// Executes the registration/key generation without the decryption program
     Registration,
+    /// Sets up the environment
+    Environment,
 }
 
 impl FromStr for Command {
@@ -29,6 +32,7 @@ impl FromStr for Command {
         match s {
             "Decrypt" => Ok(Command::Decrypt),
             "Registration" => Ok(Command::Registration),
+            "Environment" => Ok(Command::Environment),
             _ => Err(format!("Unknown command: {}", s)),
         }
     }
@@ -51,6 +55,12 @@ fn main() {
             std::process::Command::new("registration")
                 .status()
                 .expect("Failed to execute registration binary");
+        }
+        Some(Command::Environment) => {
+            // Call the environment binary
+            std::process::Command::new("environment")
+                .status()
+                .expect("Failed to execute environment binary");
         }
         None => {
             println!("Please provide a valid subcommand. Use --help for more information.");
