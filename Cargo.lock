@@ -2654,7 +2654,7 @@ checksum = "e3d7ddaed09e0eb771a79ab0fd64609ba0afb0a8366421957936ad14cbd13630"
 
 [[package]]
 name = "poems"
-version = "0.2.0"
+version = "0.2.3"
 dependencies = [
  "aead 0.5.2",
  "aes 0.8.3",

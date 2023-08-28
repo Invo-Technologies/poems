@@ -1,6 +1,6 @@
 [package]
 name = "poems"
-version = "0.2.0"
+version = "0.2.3"
 edition = "2018"
 description="Encrypt inputs into a Zero Knowledge Proof Hash Mixer, and return the values and decrypt using decryption keys"
 
@@ -72,5 +72,7 @@ name = "registration"
 path = "src/bin/registration.rs"
 
 
-
+[[bin]]
+name = "environment"
+path = "src/bin/environment.rs"
 

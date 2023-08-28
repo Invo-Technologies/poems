@@ -5,7 +5,7 @@ use std::env;
 /// Simple program to handle custom poems commands
 #[derive(Parser, Debug, Clone)]
 #[clap(
-    version = "1.0",
+    version = "2.3",
     author = "Your Name. <your.email@example.com>",
     about = "Handles custom poems commands"
 )]
@@ -20,6 +20,8 @@ enum Command {
     Decrypt,
     /// Executes the registration/key generation without the decryption program
     Registration,
+
+    Environment
 }
 
 impl FromStr for Command {
@@ -29,6 +31,7 @@ impl FromStr for Command {
         match s {
             "Decrypt" => Ok(Command::Decrypt),
             "Registration" => Ok(Command::Registration),
+            "Environment" => Ok(Command::Environment),
             _ => Err(format!("Unknown command: {}", s)),
         }
     }
@@ -49,6 +52,12 @@ fn main() {
         Some(Command::Registration) => {
             // Call the registration binary
             std::process::Command::new("registration")
+                .status()
+                .expect("Failed to execute registration binary");
+        }
+        Some(Command::Environment) => {
+            // Call the registration binary
+            std::process::Command::new("environment")
                 .status()
                 .expect("Failed to execute registration binary");
         }
