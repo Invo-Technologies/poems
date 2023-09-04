@@ -337,7 +337,7 @@ pub fn snarkos_decrypt(
 }
 
 
-/* 
+/* //this function is only required if you instend to set the snarkOS to your path.
 //this will access the current PATH of snarkOS
 pub fn snarkos_decrypt(
     record: &str,

@@ -75,10 +75,12 @@ This will install the `poems` command-line tool on your system.
 
 After installing, you can use the `poems` command followed by a subcommand:
 
-- To execute the decryption program:
+
+
+- First set the server environment variables:
 
 ```bash
-poems decrypt
+poems environment
 ```
 
 - To execute the registration/key generation without the decryption program:
@@ -86,6 +88,14 @@ poems decrypt
 ```bash
 poems registration
 ```
+
+- To execute the decryption program:
+
+```bash
+poems decrypt
+```
+
+
 
 ### Running the Frontend
 

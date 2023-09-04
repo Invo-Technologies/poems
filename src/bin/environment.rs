@@ -2,6 +2,8 @@
 use std::fs::File;
 use std::io::prelude::*;
 
+
+// You need to change the keys by running the   `aleo account new`     command. Update your poems path using the new environment path.
 fn main() {
     let content = r#"
 NETWORK=testnet3
