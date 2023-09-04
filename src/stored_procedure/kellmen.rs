@@ -1,6 +1,8 @@
 // External crates
 extern crate rand;
 extern crate rsa;
+use snarkos_cli::commands::Decrypt;
+ // Import the Execute struct// Import necessary types
 
 // External dependencies
 use async_std::task;
@@ -272,6 +274,71 @@ pub fn execute_aleo_command(
     None
 }
 
+
+pub fn snarkos_decrypt(
+    record: &str,
+    query: &mut AccountQuery,
+    keys: &mut Keys,
+) -> Result<(), MyError> {
+    println!("Executing snarkos_decrypt function test..."); // Debug statement
+
+    // Load the VIEWKEY from .env
+    let view_key = env::var("VIEWKEY").expect("VIEWKEY not set in .env");
+
+    // Create a Decrypt instance
+    let decrypt_instance = Decrypt {
+        ciphertext: record.to_string(),
+        view_key: view_key.clone(),
+    };
+
+    // Call the parse method to decrypt
+    match decrypt_instance.parse() {
+        Ok(plaintext_record) => {
+            println!("Decrypted record: {}", plaintext_record);
+
+            // Your logic for splitting the plaintext_record and setting values
+            for line in plaintext_record.lines() {
+                let parts: Vec<&str> = line.split(": ").collect();
+                if parts.len() == 2 {
+                    let key = parts[0].trim();
+                    let mut value = parts[1].trim();
+
+                    println!("Before trim: {}", value);  // Debug statement
+
+                    // Remove 'aleo1' and '.private,' from the value if they exist
+                    if value.starts_with("aleo1") && value.ends_with(".private,") {
+                        value = &value[5..value.len() - 9];
+                    }
+
+                    println!("After trim: {}", value);  // Debug statement
+
+                    match key {
+                        "node_id" => query.set_node_id(value.to_string()),
+                        "game_id" => query.set_game_id(value.to_string()),
+                        "pool_id" => query.set_pool_id(value.to_string()),
+                        "account_id" => query.set_account_id(value.to_string()),
+                        "asset_id" => query.set_asset_id(value.to_string()),
+                        "z1" => keys.set_z1(value.to_string()),
+                        "z2" => keys.set_z2(value.to_string()),
+                        "z3" => keys.set_z3(value.to_string()),
+                        "z4" => keys.set_z4(value.to_string()),
+                        "z5" => keys.set_z5(value.to_string()),
+                        _ => continue, // Ignore other keys
+                    }
+                }
+            }
+            Ok(())
+        },
+        Err(_) => {
+            println!("Invalid view key for the provided record ciphertext");
+            Err(MyError::RecordNotFound)  // Use the appropriate error variant here
+        }
+    }
+}
+
+
+/* 
+//this will access the current PATH of snarkOS
 pub fn snarkos_decrypt(
     record: &str,
     query: &mut AccountQuery,
@@ -303,8 +370,8 @@ pub fn snarkos_decrypt(
             let mut value = parts[1].trim();
 
             // Remove 'aleo' and '.private' from the value if they exist
-            if value.starts_with("aleo") && value.ends_with(".private") {
-                value = &value[4..value.len() - 8];
+            if value.starts_with("aleo1") && value.ends_with(".private,") {
+                value = &value[5..value.len() - 9];
             }
 
             match key {
@@ -325,6 +392,7 @@ pub fn snarkos_decrypt(
 
     Ok(())
 }
+*/
 
 // ==============================
 // Record Management Functions

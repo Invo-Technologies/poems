@@ -162,7 +162,7 @@ async fn main() {
 
     //--------------------------------------------------------------------------------------------------------------------------------
     // STEP 1 --- the aleo execution should happen here where it gets the current values of z's, and then executes the command.
-    println!("EXECUTING ALEO RECORD FROM PROGRAM ...\n");
+    println!("EXECUTING ALEO RECORD FROM !INVO! PROGRAM  ...\n");
     let z1 = &keys.get_z1().unwrap();
     // println!("{}", &z1);
     let z2 = &keys.get_z2().unwrap();
@@ -217,11 +217,18 @@ async fn main() {
     println!("Record to decrypt: {}", record); // Debug statement
     if let Err(e) = snarkos_decrypt(&record, &mut query, &mut keys) {
         eprintln!("Error during decryption: {}", e);
+    } else {
+        println!("Decryption successful!"); // Debug statement
         println!("\nUPDATING ACCOUNT QUERY AND BIND ID's (z's) ...\n");
         update_record_and_pause(&keys, &query);
-    } else {
-        println!("Decryption unsuccessful!"); // Debug statement
     }
+    // if let Err(e) = snarkos_decrypt(&record, &mut query, &mut keys) {
+    //     eprintln!("Error during decryption: {}", e);
+    //     println!("\nUPDATING ACCOUNT QUERY AND BIND ID's (z's) ...\n");
+    //     update_record_and_pause(&keys, &query);
+    // } else {
+    //     println!("Decryption unsuccessful!"); // Debug statement
+    // }
     tokio::time::sleep(Duration::from_secs(5)).await;
 
     // STEP 4 ---and then I need to view the output in the terminal, and set the z keys again here, where in which the rest of this function continues.
