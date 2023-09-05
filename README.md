@@ -49,8 +49,24 @@ npm install -g create-vite
 # Download and install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
+
 # Cargo comes with Rust, verify installation
 cargo --version
+
+# Download and install aleo cli 
+git clone https://github.com/AleoHQ/aleo-rust.git
+
+# Install the aleo cli toolkit
+cd aleo-rust
+
+#Build aleo SDK globally on the machine
+cargo build --release
+
+# install the aleo cli to your path for global use
+cargo install --path .
+
+# cun aleo in your command line / terminal 
+aleo --help 
 ```
 
 ## Running the Project
@@ -66,7 +82,12 @@ cd poems
 2. Build and install the project.
 
 ```bash
+
+cargo build --release
+
 cargo install --path .
+
+
 ```
 
 This will install the `poems` command-line tool on your system.
@@ -83,11 +104,37 @@ After installing, you can use the `poems` command followed by a subcommand:
 poems environment
 ```
 
+If need INVO's test implementation, refer to this .env example for use : 
+
+```bash
+# You will need to launch your own application first. Please refer to the ALEO Deploy and Execute documentation:
+# https://developer.aleo.org/testnet/getting_started/deploy_execute
+
+# To see the full hash mixer contract, refer to this link: https://github.com/Invo-Technologies/poems1mxydh
+# You may use this environment to test Invo's implementation directly. If it does not work, it means that WALLETADDRESS needs more credits.
+# If aleo1hfl83c9c8y69ed56du46fmflnnfwh2zhu2ye0neywphsv8ek2upsr84he2 requires more credits, please use the Aleo Test Faucet and supply this address for testing purposes.
+
+NETWORK=testnet3
+PRIVATE_KEY=APrivateKey1zkp2Q3VWwLuWJ2eZbCJN2TLTTecXgB1mDHt7nUZ9NQpqiF5
+VIEWKEY=AViewKey1cVEpPghtw6ujrJ8Fy9M6fMZYcvNjYW4M4RWCc4yKLDE9
+WALLETADDRESS=aleo1hfl83c9c8y69ed56du46fmflnnfwh2zhu2ye0neywphsv8ek2upsr84he2
+APPNAME=poems1hfl83.aleo
+FEE=1
+FUNCTION=interpretations
+
+# The network is used to access the network, and the private key is responsible for spending the fee for the record being produced.
+# The view key is used to decrypt the record.
+# This environment must be set on the server first during configuration using the Poems environment.
+
+```
+
 - To execute the registration/key generation without the decryption program:
 
 ```bash
 poems registration
 ```
+
+WARNING: if the environment is not set, registration will fail.
 
 - To execute the decryption program:
 
@@ -95,6 +142,8 @@ poems registration
 poems decrypt
 ```
 
+TIP: Set your browser preferences to Google Chrome for Best results. This will download the interpretations to your Desktop, 
+and they will also automatically open an HTML document in your browser 
 
 
 ### Running the Frontend
