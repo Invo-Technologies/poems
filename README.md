@@ -145,6 +145,12 @@ poems decrypt
 TIP: Set your browser preferences to Google Chrome for Best results. This will download the interpretations to your Desktop, 
 and they will also automatically open an HTML document in your browser 
 
+- if you want to change the code and implement your own binary's, run the following command : 
+```bash 
+
+cargo run --bin <COMMAND>
+```
+
 
 ### Running the Frontend
 
