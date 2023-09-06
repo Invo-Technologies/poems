@@ -11,13 +11,10 @@ description="Encrypt inputs into a Zero Knowledge Proof Hash Mixer, and return t
 aead = "0.5.2"
 aes = "0.8.3"
 aes-gcm = { version = "0.10.2", features = ["heapless"] }
-aleo = "0.5.5"
 anyhow = "1.0.75"
 async-std = "1.12.0"
 base64 = "0.21.2"
 bip39 = "2.0.0"
-block-modes = "0.8"
-block-padding = "0.2"
 cbc = "0.1.2"
 clap = "4.4.0"
 colored = "2.0.4"
@@ -44,12 +41,9 @@ serde_derive = "1.0.181"
 serde_json = "1.0.104"
 sha2 = "0.10.7"
 simple_asn1 = "0.6.2"
-snarkos = "2.1.6"
 snarkos-cli = "2.1.6"
 snarkos-display = "2.1.6"
-snarkvm = "0.14.6"
 tokio = { version = "1", features = ["full"] }
-wasm-bindgen = "0.2.87"
 webbrowser = "0.8.10"
 
 [lib]

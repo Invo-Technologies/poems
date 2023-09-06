@@ -39,7 +39,8 @@ impl FromStr for Command {
 
 fn main() {
     dotenv().ok();
-    let my_variable = env::var("APPNAME").unwrap_or("default_value".to_string());
+    
+    let _my_variable = env::var("APPNAME").unwrap_or("default_value".to_string());
     let args = PoemsCLI::parse();
 
     match args.cmd {
