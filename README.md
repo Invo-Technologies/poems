@@ -25,6 +25,8 @@ Before proceeding, ensure you have the following tools installed:
 
 ## Installation Instructions
 
+**WARNING** ::: This application is designed to be executed in the command line. There is a React Interface, but is only designed to demonstrate the use of POEMS.
+
 **Node.js and npm:**
 
 ```bash
