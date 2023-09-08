@@ -136,7 +136,7 @@ FUNCTION=interpretations
 poems registration
 ```
 
-**WARNING**::: _ if the environment is not set, registration will fail._
+**WARNING** ::: if the environment is not set, COMMAND<registration> will fail.
 
 - To execute the decryption program:
 
