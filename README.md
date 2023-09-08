@@ -174,9 +174,6 @@ npm run dev
 
 Open the displayed local address in your web browser to interact with the project.
 
-## Understanding POEMS
-
-This updated `README.md` provides clear instructions on how to install and use the `poems` command-line tool. After making these changes to your README, anyone who clones or downloads your project will have a clear guide on how to set up and use the tool.
 
 ## Understanding POEMS
 
