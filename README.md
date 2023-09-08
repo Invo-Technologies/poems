@@ -211,6 +211,11 @@ The POEMS process inherently incentivizes both the key master and the external p
 
 The Proof of the Effective Majority (POEMS) is a robust and secure mechanism that enables the validation of a shared secret within the INVO system. Through a series of steps involving key generation, mnemonic creation, and the exchange of information, the POEMS process ensures consensus and verification between parties involved.
 
+If you are looking to review and use the hash mixer, coined "mixy", checkout the aleo program's code using this link :
+LINK ::: **https://github.com/Invo-Technologies/poems1mxydh**
+<img width="749" alt="Screenshot 2023-09-08 at 1 52 59 AM" src="https://github.com/Invo-Technologies/poems/assets/43707795/cbc1fc12-62b5-4be6-b7e8-58819d6c1c6a">
+
+
 ## The Easy Explanation
 
 Imagine we're playing a game 🎮 ! In this game, I make a magic box 🎁 and magic keys 🔑🔑. I also make an invisible, secret word list 📜. This word list is super special because only you and I know about it , and it can help us make more keys if we ever lose them. 🗑️
