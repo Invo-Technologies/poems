@@ -1,7 +1,7 @@
 use clap::Parser;
-use std::str::FromStr;
 use dotenv::dotenv;
 use std::env;
+use std::str::FromStr;
 /// Simple program to handle custom poems commands
 #[derive(Parser, Debug, Clone)]
 #[clap(
@@ -21,7 +21,7 @@ enum Command {
     /// Executes the registration/key generation without the decryption program
     Registration,
 
-    Environment
+    Environment,
 }
 
 impl FromStr for Command {
@@ -39,7 +39,7 @@ impl FromStr for Command {
 
 fn main() {
     dotenv().ok();
-    
+
     let _my_variable = env::var("APPNAME").unwrap_or("default_value".to_string());
     let args = PoemsCLI::parse();
 
