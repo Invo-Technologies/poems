@@ -2,7 +2,7 @@
 extern crate rand;
 extern crate rsa;
 use snarkos_cli::commands::Decrypt;
- // Import the Execute struct// Import necessary types
+// Import the Execute struct// Import necessary types
 
 // External dependencies
 use async_std::task;
@@ -274,7 +274,6 @@ pub fn execute_aleo_command(
     None
 }
 
-
 pub fn snarkos_decrypt(
     record: &str,
     query: &mut AccountQuery,
@@ -303,14 +302,14 @@ pub fn snarkos_decrypt(
                     let key = parts[0].trim();
                     let mut value = parts[1].trim();
 
-                    println!("Before trim: {}", value);  // Debug statement
+                    println!("Before trim: {}", value); // Debug statement
 
                     // Remove 'aleo1' and '.private,' from the value if they exist
                     if value.starts_with("aleo1") && value.ends_with(".private,") {
                         value = &value[5..value.len() - 9];
                     }
 
-                    println!("After trim: {}", value);  // Debug statement
+                    println!("After trim: {}", value); // Debug statement
 
                     match key {
                         "node_id" => query.set_node_id(value.to_string()),
@@ -328,14 +327,13 @@ pub fn snarkos_decrypt(
                 }
             }
             Ok(())
-        },
+        }
         Err(_) => {
             println!("Invalid view key for the provided record ciphertext");
-            Err(MyError::RecordNotFound)  // Use the appropriate error variant here
+            Err(MyError::RecordNotFound) // Use the appropriate error variant here
         }
     }
 }
-
 
 /* //this function is only required if you instend to set the snarkOS to your path.
 //this will access the current PATH of snarkOS

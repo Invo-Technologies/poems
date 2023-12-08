@@ -2,7 +2,6 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-
 // You need to change the keys by running the   `aleo account new`     command. Update your poems path using the new environment path.
 fn main() {
     let content = r#"
@@ -16,5 +15,6 @@ FUNCTION=interpretations
 "#;
 
     let mut file = File::create(".env").expect("Unable to create .env file");
-    file.write_all(content.as_bytes()).expect("Unable to write to .env file");
+    file.write_all(content.as_bytes())
+        .expect("Unable to write to .env file");
 }
